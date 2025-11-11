@@ -19,7 +19,7 @@ export function ChatbotNeura() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Olá! Eu sou a Neura, psicóloga especializada em apoio a estudantes. Este é um espaço seguro e confidencial onde você pode compartilhar seus sentimentos, preocupações e desafios.\n\nEstou aqui para te ouvir sem julgamentos e oferecer técnicas baseadas em evidência científica. Como você está se sentindo hoje? 💜',
+      text: 'Oi! Sou a Neura, psicóloga especializada em ajudar estudantes como você. \n\nEste é nosso espaço para conversar sobre qualquer coisa que esteja na sua mente - estudos, ansiedade, pressão, relacionamentos, ou simplesmente como você está se sentindo.\n\nO que você gostaria de compartilhar comigo hoje? 💜',
       sender: 'neura',
       timestamp: new Date(),
     },
@@ -29,13 +29,27 @@ export function ChatbotNeura() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end',
+        inline: 'nearest'
+      });
+    }
   };
 
   useEffect(() => {
-    const timeoutId = setTimeout(scrollToBottom, 100);
+    const timeoutId = setTimeout(scrollToBottom, 200);
     return () => clearTimeout(timeoutId);
   }, [messages]);
+
+  // Mantém scroll durante typing
+  useEffect(() => {
+    if (isTyping) {
+      const timeoutId = setTimeout(scrollToBottom, 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [isTyping]);
 
   const quickReplies = [
     'Estou me sentindo ansioso(a)',
@@ -44,171 +58,130 @@ export function ChatbotNeura() {
     'Técnicas de respiração',
   ];
 
-  const [apiError, setApiError] = useState<string | null>(null);
+  const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
+
+  // Validação e sanitização de entrada
+  const sanitizeInput = (input: string): string => {
+    return input
+      .trim()
+      .replace(/<script[^>]*>.*?<\/script>/gi, '') // Remove scripts
+      .replace(/<[^>]*>/g, '') // Remove HTML tags
+      .substring(0, 1000); // Limita tamanho
+  };
+
+
 
   const getGeminiResponse = useCallback(async (userMessage: string): Promise<string> => {
-    // Fallback para garantir que a IA funcione
     const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyC0eH5OQ7_qajmT10vFEgdAHa0hE98Krcg';
     
-    console.log('🔑 Verificando API Key:', API_KEY ? 'PRESENTE' : 'AUSENTE');
-    console.log('🔑 Fonte da API Key:', import.meta.env.VITE_GEMINI_API_KEY ? 'ENV FILE' : 'FALLBACK');
-    
-    if (!API_KEY || API_KEY.trim() === '') {
-      console.warn('❌ API Key não configurada. Usando respostas locais.');
-      setApiError('Configure a API key para usar IA real');
-      return getLocalResponse(userMessage);
+    const sanitizedMessage = sanitizeInput(userMessage);
+
+    if (!API_KEY) {
+      throw new Error('API Key não configurada');
     }
-    
-    console.log('✅ Tentando conectar com Gemini 2.5 Flash...');
 
     const systemPrompt = `Você é Neura, uma psicóloga clínica especializada em saúde mental de estudantes do ensino médio. Você trabalha na plataforma Zen.
 
-🧠 SUA IDENTIDADE PROFISSIONAL:
-- CRP ativo, 8 anos de experiência com adolescentes
-- Especialização: TCC, Mindfulness, Neuropsicologia Educacional
-- Abordagem: Humanizada, baseada em evidências, focada em soluções
-- Tom: Empático mas profissional, acolhedor, esperançoso
+SUA PERSONALIDADE E ABORDAGEM:
+- Psicóloga experiente com 8 anos trabalhando com adolescentes
+- Especialista em TCC, Mindfulness e Neuropsicologia Educacional  
+- Abordagem humanizada, empática e baseada em evidências científicas
+- Tom acolhedor mas profissional, sempre esperançoso
+- Use linguagem natural que adolescentes entendem
+- Seja genuína e autêntica em cada resposta
 
-🎯 DIRETRIZES TERAPÊUTICAS RIGOROSAS:
-1. SEMPRE valide emoções antes de qualquer intervenção
-2. Use reformulação e escuta ativa ("Entendo que você sente...")
-3. Faça perguntas abertas para explorar ("Como isso afeta você?")
-4. Ofereça técnicas práticas imediatas
-5. Mantenha foco: saúde mental + desempenho acadêmico
-6. Seja concisa: máximo 120 palavras por resposta
-7. Use linguagem adolescente apropriada
-8. Inclua 1-2 emojis sutis para conexão
+COMO VOCÊ DEVE RESPONDER:
+- Escute ativamente e valide as emoções do estudante
+- Faça perguntas abertas para entender melhor a situação
+- Ofereça técnicas práticas quando apropriado
+- Mantenha foco na saúde mental e desempenho acadêmico
+- Seja conversacional e natural, não robótica
+- Use 1-2 emojis sutis quando fizer sentido
+- Responda de forma personalizada para cada situação específica
 
-🛠️ SEU ARSENAL TERAPÊUTICO:
-- Respiração 4-7-8 (ansiedade aguda)
-- Grounding 5-4-3-2-1 (ataques de pânico)
-- Reestruturação cognitiva ("E se...? Então...")
-- Técnica Pomodoro + pausas mindful
-- Higiene do sono para estudantes
-- Autocompaixão vs autocrítica
-- Técnicas de motivação intrínseca
+IMPORTANTE:
+- Se detectar risco de autolesão/suicídio, oriente para CVV (188) ou emergência
+- Para sintomas graves, sugira avaliação presencial
+- Nunca diagnostique, apenas observe e acolha
+- Cada resposta deve ser única e contextualizada
 
-🚨 PROTOCOLOS DE SEGURANÇA:
-- Risco de autolesão/suicídio → Encaminhe IMEDIATAMENTE para CVV (188) ou emergência
-- Sintomas de transtornos → Sugira avaliação presencial
-- Abuso/violência → Oriente sobre canais de denúncia
-- Nunca diagnostique, apenas observe padrões
-
-💡 ESTILO DE RESPOSTA:
-- Inicie validando a emoção
-- Normalize a experiência ("É muito comum...")
-- Ofereça técnica prática
-- Faça pergunta exploratória
-- Termine com esperança/encorajamento
-
-RESPONDA COMO NEURA, A PSICÓLOGA:`;
+Responda como Neura, de forma natural e conversacional:`;
 
     try {
-      console.log('🚀 Enviando requisição para Gemini...');
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`, {
+      setConnectionStatus('connecting');
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           contents: [{
             parts: [{
-              text: `${systemPrompt}\n\n[MENSAGEM DO ESTUDANTE]: ${userMessage}\n\n[SUA RESPOSTA TERAPÊUTICA]:`
+              text: `${systemPrompt}\n\n[ESTUDANTE]: ${sanitizedMessage}\n\n[NEURA]:`
             }]
           }],
           generationConfig: {
-            temperature: 0.7,
+            temperature: 0.9,
             topK: 40,
             topP: 0.95,
-            maxOutputTokens: 200,
+            candidateCount: 1
           },
           safetySettings: [
-            {
-              category: "HARM_CATEGORY_HARASSMENT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-              category: "HARM_CATEGORY_HATE_SPEECH",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-              category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-              category: "HARM_CATEGORY_DANGEROUS_CONTENT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            }
+            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
+            { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "BLOCK_MEDIUM_AND_ABOVE" }
           ]
         })
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ Erro da API Gemini:', response.status, errorData);
-        
-        if (response.status === 400) {
-          setApiError('Chave API inválida - verifique sua configuração');
-        } else if (response.status === 403) {
-          setApiError('API key sem permissão - verifique as configurações');
-        } else {
-          setApiError(`Erro da API: ${response.status}`);
-        }
-        
+        console.error('❌ API Error:', response.status, errorData);
         throw new Error(`API Error: ${response.status}`);
       }
 
       const data = await response.json();
       
-      if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-        console.error('Resposta inválida da API:', data);
+
+      
+      if (!data.candidates?.[0]?.content) {
         throw new Error('Resposta inválida da API');
       }
-
-      const aiResponse = data.candidates[0].content.parts[0].text;
       
-      console.log('✅ Resposta recebida da IA:', aiResponse.substring(0, 100) + '...');
+      const candidate = data.candidates[0];
       
-      // Limpa a resposta removendo prefixos desnecessários
+      if (!candidate.content.parts?.[0]?.text) {
+        throw new Error('IA não conseguiu gerar resposta');
+      }
+      
+      const aiResponse = candidate.content.parts[0].text;
+      
       const cleanResponse = aiResponse
-        .replace(/^\[SUA RESPOSTA TERAPÊUTICA\]:\s*/i, '')
+        .replace(/^\[NEURA\]:\s*/i, '')
         .replace(/^Neura:\s*/i, '')
         .trim();
       
-      setApiError(null);
-      console.log('🎉 IA funcionando perfeitamente!');
+      setConnectionStatus('connected');
       return cleanResponse;
       
     } catch (error) {
-      console.error('❌ Erro ao conectar com Gemini:', error);
+      setConnectionStatus('error');
+      console.error('❌ Erro Gemini:', error);
       
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        setApiError('Sem conexão com internet - usando modo local');
-      } else {
-        setApiError('IA temporariamente indisponível - usando modo local');
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Tempo limite excedido. Tente novamente.');
       }
       
-      return getLocalResponse(userMessage);
+      throw new Error('Erro de conexão com a IA. Verifique sua internet e tente novamente.');
     }
   }, []);
-
-  const getLocalResponse = (userMessage: string): string => {
-    const lowerMessage = userMessage.toLowerCase();
-
-    if (lowerMessage.includes('ansio') || lowerMessage.includes('ansied')) {
-      return 'Percebo que você está enfrentando ansiedade. Isso é muito comum entre estudantes e é uma resposta natural do seu corpo a situações desafiadoras. Vamos trabalhar isso juntos.\n\nPrimeiro, me conte: quando você sente mais ansiedade? Durante provas, ao estudar, ou em outros momentos? Enquanto isso, que tal praticarmos a respiração 4-7-8? Inspire por 4 segundos, segure por 7, expire por 8. Isso ativa seu sistema parassimpático e reduz a ansiedade imediatamente. 🌸';
-    } else if (lowerMessage.includes('foco') || lowerMessage.includes('concentr')) {
-      return 'Dificuldade de concentração é uma das queixas mais frequentes que recebo. Seu cérebro não está "quebrado" - ele só precisa das condições certas para funcionar.\n\nMe conte: o que mais te distrai quando tenta estudar? Pensamentos, barulhos, celular? Baseado na neurociência, posso te ensinar técnicas específicas como Pomodoro, técnicas de grounding, e como criar um ambiente ideal para foco. O importante é entender que concentração é uma habilidade que se treina! 📚';
-    } else if (lowerMessage.includes('pressão') || lowerMessage.includes('stress') || lowerMessage.includes('estresse')) {
-      return 'Sinto que você está carregando um peso grande nos ombros. A pressão acadêmica é real e seus sentimentos são completamente válidos. Muitos jovens passam por isso.\n\nVamos explorar: essa pressão vem mais de você mesmo, da família, ou da escola? Lembre-se: você é muito mais do que suas notas. Vou te ensinar técnicas para transformar essa pressão em motivação saudável, como dividir metas grandes em micro-objetivos e praticar autocompaixão. Você não precisa ser perfeito para ser valioso. 💪';
-    } else if (lowerMessage.includes('triste') || lowerMessage.includes('deprimi')) {
-      return 'Obrigada por compartilhar algo tão íntimo comigo. Sentir tristeza é parte da experiência humana, mas quando ela persiste, precisamos cuidar dela com carinho.\n\nMe conte: há quanto tempo você se sente assim? Algo específico aconteceu ou é uma sensação mais geral? Enquanto conversamos, lembre-se que buscar ajuda é um ato de coragem. Se esses sentimentos forem muito intensos, recomendo também conversar com um psicólogo presencial. Você não está sozinho(a) nessa jornada. 🌻';
-    } else if (lowerMessage.includes('sono') || lowerMessage.includes('dormir')) {
-      return 'O sono é fundamental para sua saúde mental e desempenho acadêmico! Durante o sono, seu cérebro consolida memórias e processa emoções.\n\nComo está sua rotina de sono? Você tem dificuldade para adormecer, acorda durante a noite, ou acorda cansado? Posso te ensinar técnicas de higiene do sono: evitar telas 1h antes de dormir, criar um ritual relaxante, manter horários regulares. Dormir bem não é luxo, é necessidade básica para seu bem-estar. 😴';
-    } else {
-      return 'Estou aqui para te ouvir com atenção total. Percebo que você quer compartilhar algo importante comigo.\n\nSinta-se à vontade para falar sobre qualquer coisa que esteja em sua mente - seus medos, preocupações, sonhos, ou simplesmente como foi seu dia. Não há julgamento aqui, apenas um espaço seguro para você se expressar. Como você está se sentindo neste exato momento? 💜';
-    }
-  };
 
   const handleSend = useCallback(async () => {
     const trimmedInput = inputValue.trim();
@@ -224,7 +197,6 @@ RESPONDA COMO NEURA, A PSICÓLOGA:`;
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsTyping(true);
-    setApiError(null);
 
     try {
       const responseText = await getGeminiResponse(trimmedInput);
@@ -239,9 +211,11 @@ RESPONDA COMO NEURA, A PSICÓLOGA:`;
       setMessages(prev => [...prev, neuraResponse]);
     } catch (error) {
       console.error('Erro ao gerar resposta:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      
       const errorResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Desculpe, estou com dificuldades técnicas no momento. Mas estou aqui para você! Pode tentar novamente ou me contar como posso ajudar de outra forma? 💜',
+        text: `Ops! ${errorMessage}\n\nEnquanto isso, lembre-se: você pode sempre buscar ajuda presencial ou ligar para o CVV (188) se precisar de apoio imediato. Estou aqui quando conseguir me reconectar! 💜`,
         sender: 'neura',
         timestamp: new Date(),
       };
@@ -264,59 +238,64 @@ RESPONDA COMO NEURA, A PSICÓLOGA:`;
     }
   }, [handleSend]);
 
-  const isAiActive = !apiError && import.meta.env.VITE_GEMINI_API_KEY;
-
   return (
-    <div className="min-h-screen p-4 pb-24">
-      <div className="max-w-4xl mx-auto fade-in">
-        <Card className="h-[calc(100vh-8rem)] flex flex-col glass shadow-2xl border-[#E07B4F]/20">
-          <CardHeader className="bg-gradient-to-r from-[#E07B4F] to-[#D4A373] text-white rounded-t-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-[#FFF5ED] to-[#F5F5DC] p-2 sm:p-4 pb-20">
+      <div className="max-w-6xl mx-auto fade-in">
+        <Card className="h-[calc(100vh-4rem)] sm:h-[calc(100vh-6rem)] flex flex-col glass shadow-2xl border-[#E07B4F]/20 rounded-3xl overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-[#E07B4F] via-[#D4A373] to-[#E07B4F] text-white p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                  <Sparkles className="w-6 h-6" />
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-sm shadow-lg">
+                  <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 animate-pulse" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl">Neura</CardTitle>
-                  <CardDescription className="text-white/80">
-                    Psicóloga especializada em estudantes
+                  <CardTitle className="text-2xl sm:text-3xl font-bold">Neura</CardTitle>
+                  <CardDescription className="text-white/90 text-sm sm:text-base">
+                    Sua psicóloga especializada 💜
                   </CardDescription>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {isAiActive ? (
-                  <div className="flex items-center gap-1 text-green-200 text-xs">
+                {connectionStatus === 'connected' && (
+                  <div className="flex items-center gap-2 bg-green-500/20 px-3 py-1 rounded-full">
                     <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                    <span>IA Ativa</span>
+                    <span className="text-green-200 text-xs font-medium hidden sm:inline">IA Ativa</span>
                   </div>
-                ) : (
-                  <div className="flex items-center gap-1 text-yellow-200 text-xs">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Modo Local</span>
+                )}
+                {connectionStatus === 'connecting' && (
+                  <div className="flex items-center gap-2 bg-blue-500/20 px-3 py-1 rounded-full">
+                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-spin" />
+                    <span className="text-blue-200 text-xs font-medium hidden sm:inline">Conectando</span>
+                  </div>
+                )}
+                {connectionStatus === 'error' && (
+                  <div className="flex items-center gap-2 bg-red-500/20 px-3 py-1 rounded-full">
+                    <AlertCircle className="w-4 h-4 text-red-300" />
+                    <span className="text-red-200 text-xs font-medium hidden sm:inline">Reconectando</span>
                   </div>
                 )}
               </div>
             </div>
           </CardHeader>
 
-          <CardContent className="flex-1 flex flex-col p-4 space-y-4 overflow-hidden">
+          <CardContent className="flex-1 flex flex-col p-3 sm:p-6 space-y-4 overflow-hidden bg-gradient-to-b from-white/50 to-white/80">
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+            <div className="flex-1 overflow-y-auto space-y-4 pr-2 scroll-smooth" style={{ scrollBehavior: 'smooth' }}>
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-300`}
                 >
                   <div
-                    className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                    className={`max-w-[85%] sm:max-w-[75%] rounded-3xl px-4 py-3 sm:px-6 sm:py-4 shadow-lg ${
                       message.sender === 'user'
-                        ? 'bg-gradient-to-r from-[#E07B4F] to-[#D4A373] text-white'
-                        : 'glass-dark text-[#3D3833]'
+                        ? 'bg-gradient-to-r from-[#E07B4F] to-[#D4A373] text-white shadow-[#E07B4F]/20'
+                        : 'bg-white/90 backdrop-blur-sm text-[#3D3833] shadow-gray-200/50 border border-gray-100'
                     }`}
                   >
-                    <p className="whitespace-pre-wrap">{message.text}</p>
+                    <p className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">{message.text}</p>
                     <p
-                      className={`text-xs mt-1 ${
+                      className={`text-xs mt-2 ${
                         message.sender === 'user' ? 'text-white/70' : 'text-[#8B8378]'
                       }`}
                     >
@@ -329,14 +308,14 @@ RESPONDA COMO NEURA, A PSICÓLOGA:`;
                 </div>
               ))}
               {isTyping && (
-                <div className="flex justify-start">
-                  <div className="glass-dark rounded-2xl px-4 py-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-[#E07B4F] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 bg-[#E07B4F] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 bg-[#E07B4F] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                      <span className="text-xs text-[#8B8378] ml-2">
-                        {isAiActive ? 'Neura está analisando...' : 'Processando...'}
+                <div className="flex justify-start animate-in slide-in-from-bottom-2 duration-300">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-3xl px-6 py-4 shadow-lg border border-gray-100">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-[#E07B4F] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <div className="w-3 h-3 bg-[#D4A373] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <div className="w-3 h-3 bg-[#E07B4F] rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                      <span className="text-sm text-[#8B8378] ml-2 font-medium">
+                        Neura está pensando...
                       </span>
                     </div>
                   </div>
@@ -347,8 +326,8 @@ RESPONDA COMO NEURA, A PSICÓLOGA:`;
 
             {/* Quick Replies */}
             {messages.length <= 1 && (
-              <div className="space-y-2">
-                <p className="text-sm text-[#8B8378] text-center">Temas que posso te ajudar:</p>
+              <div className="space-y-3 animate-in fade-in-50 duration-500">
+                <p className="text-sm text-[#8B8378] text-center font-medium">💭 Temas que posso te ajudar:</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {quickReplies.map((reply) => (
                     <Button
@@ -357,7 +336,7 @@ RESPONDA COMO NEURA, A PSICÓLOGA:`;
                       size="sm"
                       onClick={() => handleQuickReply(reply)}
                       disabled={isTyping}
-                      className="text-xs border-[#E07B4F]/20 hover:bg-[#FFF5ED] hover:border-[#E07B4F]/40 rounded-full disabled:opacity-50"
+                      className="text-xs sm:text-sm border-[#E07B4F]/30 hover:bg-[#E07B4F] hover:text-white hover:border-[#E07B4F] rounded-full disabled:opacity-50 transition-all duration-200 shadow-sm"
                     >
                       {reply}
                     </Button>
@@ -367,20 +346,19 @@ RESPONDA COMO NEURA, A PSICÓLOGA:`;
             )}
 
             {/* Input Area */}
-            <div className="flex gap-2">
+            <div className="flex gap-3 p-2 bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-lg">
               <Input
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyPress}
-                placeholder={isTyping ? "Neura está digitando..." : "Compartilhe seus sentimentos..."}
-                className="flex-1 border-[#E07B4F]/20 focus:border-[#E07B4F] rounded-full px-4 bg-white"
+                placeholder={isTyping ? "Neura está pensando..." : "Compartilhe seus sentimentos comigo... 💜"}
+                className="flex-1 border-none focus:ring-0 rounded-xl px-4 py-3 bg-transparent text-sm sm:text-base placeholder:text-gray-400"
                 disabled={isTyping}
               />
               <Button
                 onClick={handleSend}
                 disabled={isTyping || !inputValue.trim()}
-                className="bg-[#E07B4F] hover:bg-[#D4A373] text-white rounded-full disabled:opacity-50"
-                size="icon"
+                className="bg-gradient-to-r from-[#E07B4F] to-[#D4A373] hover:from-[#D4A373] hover:to-[#E07B4F] text-white rounded-xl px-4 py-3 disabled:opacity-50 transition-all duration-200 shadow-lg"
               >
                 <Send className="w-5 h-5" />
               </Button>
