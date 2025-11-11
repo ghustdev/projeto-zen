@@ -1,4 +1,5 @@
 # 🧘 Zen - Plataforma de Saúde Mental e Desempenho Acadêmico
+[![Projeto Zen](/logo.png)](https://projeto-zen.vercel.app/)
 
 > **"Estude sem se destruir"** - Uma solução tecnológica para estudantes do ensino médio
 
@@ -26,7 +27,7 @@ Estudantes do ensino médio enfrentam:
 
 ### ✨ Nossa Solução
 
-Acesse nosso protótipo: [Zen](https://projeto-zen.vercel.app/)
+Acesse nosso protótipo: [Projeto Zen](https://projeto-zen.vercel.app/)
 
 Uma plataforma centralizada que oferece:
 - **IA Terapêutica (Neura)** - Chatbot para apoio emocional
