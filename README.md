@@ -25,6 +25,9 @@ Estudantes do ensino médio enfrentam:
 - Sono insuficiente e estresse contínuo
 
 ### ✨ Nossa Solução
+
+Acesse nosso protótipo: [Zen](https://projeto-zen.vercel.app/)
+
 Uma plataforma centralizada que oferece:
 - **IA Terapêutica (Neura)** - Chatbot para apoio emocional
 - **Ferramentas de Estudo** - Pomodoro e técnicas comprovadas
