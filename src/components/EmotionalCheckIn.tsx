@@ -1,14 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Slider } from './ui/slider';
-import { Heart, Smile, Meh, Frown, Battery } from 'lucide-react';
+import { Heart, Smile, Battery } from 'lucide-react';
 
 interface EmotionalCheckInProps {
   onCheckInComplete: (mood: number, energy: number) => void;
 }
 
 export function EmotionalCheckIn({ onCheckInComplete }: EmotionalCheckInProps) {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const [mood, setMood] = useState(5);
   const [energy, setEnergy] = useState(5);
   const [submitted, setSubmitted] = useState(false);
@@ -28,8 +32,17 @@ export function EmotionalCheckIn({ onCheckInComplete }: EmotionalCheckInProps) {
   };
 
   const handleSubmit = () => {
-    onCheckInComplete(mood, energy);
-    setSubmitted(true);
+    if (mood < 1 || mood > 10 || energy < 1 || energy > 10) {
+      console.error('Valores inválidos para mood ou energy');
+      return;
+    }
+    
+    try {
+      onCheckInComplete(mood, energy);
+      setSubmitted(true);
+    } catch (error) {
+      console.error('Erro ao salvar check-in:', error);
+    }
   };
 
   const handleReset = () => {

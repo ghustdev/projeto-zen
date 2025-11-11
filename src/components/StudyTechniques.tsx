@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { GraduationCap, Clock, Repeat, BookMarked, Brain, Lightbulb, Check } from 'lucide-react';
@@ -9,6 +9,10 @@ interface StudyTechniquesProps {
 }
 
 export function StudyTechniques({ onLessonComplete }: StudyTechniquesProps) {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
 
   const techniques = [
@@ -149,7 +153,11 @@ export function StudyTechniques({ onLessonComplete }: StudyTechniquesProps) {
   const handleCompleteLesson = (lessonId: string) => {
     if (!completedLessons.has(lessonId)) {
       setCompletedLessons(new Set([...completedLessons, lessonId]));
-      onLessonComplete();
+      try {
+        onLessonComplete();
+      } catch (error) {
+        console.error('Erro ao completar lição:', error);
+      }
     }
   };
 

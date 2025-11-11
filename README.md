@@ -11,6 +11,8 @@
 
 **Zen** é uma plataforma inovadora desenvolvida pela equipe **Monkeys com Aura** para o Hackathon Gemini - Google, focada em melhorar a saúde mental e o desempenho acadêmico de estudantes do ensino médio.
 
+[Apresentação do Pitch do nosso Projeto](https://www.youtube.com/watch?v=RvOYLfjVPxg)
+
 ### 🎯 Objetivo
 Reduzir a ansiedade e aumentar a performance escolar, integrando ferramentas de apoio psicológico e estudantil, com foco em gestão eficiente e fomento na participação de comunidades de apoio.
 
@@ -206,7 +208,14 @@ yarn build
 
 ## 👥 Equipe - Monkeys com Aura
 
-[Gustavo Cardoso Costa]()
+[Gustavo Cardoso Costa](https://github.com/ghustdev)
+[Heitor Marx Augusto Vaz](https://github.com/ghustdev)
+[Arthur Martins Batista](https://github.com/ghustdev)
+[Felipe Luz Leroy](https://github.com/ghustdev)
+
+## 💻 Desenvolvimento
+
+[Miro compartilhado e MBC](https://miro.com/app/board/uXjVJtFnPPs=/?share_link_id=337809878934)
 
 - **Desenvolvimento Frontend** - Interface e experiência do usuário
 - **Design UX/UI** - Experiência centrada no usuário

@@ -1,4 +1,4 @@
-import { Home, MessageCircle, Users, BookOpen, Timer, Heart, Award, BarChart3 } from 'lucide-react';
+import { Home, MessageCircle, Timer, Heart, Award, BarChart3 } from 'lucide-react';
 import type { Page } from '../App';
 
 interface NavigationProps {

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Award, Trophy, Target, Star, Zap, Crown, Medal, Flame } from 'lucide-react';
 import { Progress } from './ui/progress';
@@ -19,6 +20,10 @@ interface Achievement {
 }
 
 export function Rewards({ userData }: RewardsProps) {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const achievements: Achievement[] = [
     {
       id: 'first-checkin',
@@ -26,7 +31,7 @@ export function Rewards({ userData }: RewardsProps) {
       title: 'Primeiro Passo',
       description: 'Complete seu primeiro check-in emocional',
       points: 10,
-      unlocked: userData.checkIns.length >= 1,
+      unlocked: (userData.checkIns?.length || 0) >= 1,
     },
     {
       id: 'week-streak',
@@ -34,8 +39,8 @@ export function Rewards({ userData }: RewardsProps) {
       title: 'Semana Consistente',
       description: 'Faça check-ins por 7 dias consecutivos',
       points: 50,
-      unlocked: userData.checkIns.length >= 7,
-      progress: userData.checkIns.length,
+      unlocked: (userData.checkIns?.length || 0) >= 7,
+      progress: userData.checkIns?.length || 0,
       total: 7,
     },
     {
@@ -44,7 +49,7 @@ export function Rewards({ userData }: RewardsProps) {
       title: 'Foco Inicial',
       description: 'Complete sua primeira sessão Pomodoro',
       points: 20,
-      unlocked: userData.pomodoroSessions >= 1,
+      unlocked: (userData.pomodoroSessions || 0) >= 1,
     },
     {
       id: 'pomodoro-master',
@@ -52,8 +57,8 @@ export function Rewards({ userData }: RewardsProps) {
       title: 'Mestre do Foco',
       description: 'Complete 25 sessões Pomodoro',
       points: 100,
-      unlocked: userData.pomodoroSessions >= 25,
-      progress: userData.pomodoroSessions,
+      unlocked: (userData.pomodoroSessions || 0) >= 25,
+      progress: userData.pomodoroSessions || 0,
       total: 25,
     },
     {
@@ -62,8 +67,8 @@ export function Rewards({ userData }: RewardsProps) {
       title: 'Estudante Dedicado',
       description: 'Complete 5 aulas educativas',
       points: 75,
-      unlocked: userData.lessonsCompleted >= 5,
-      progress: userData.lessonsCompleted,
+      unlocked: (userData.lessonsCompleted || 0) >= 5,
+      progress: userData.lessonsCompleted || 0,
       total: 5,
     },
     {
@@ -72,8 +77,8 @@ export function Rewards({ userData }: RewardsProps) {
       title: 'Acadêmico',
       description: 'Complete todas as aulas educativas',
       points: 150,
-      unlocked: userData.lessonsCompleted >= 10,
-      progress: userData.lessonsCompleted,
+      unlocked: (userData.lessonsCompleted || 0) >= 10,
+      progress: userData.lessonsCompleted || 0,
       total: 10,
     },
     {
@@ -82,8 +87,8 @@ export function Rewards({ userData }: RewardsProps) {
       title: 'Centurião',
       description: 'Acumule 100 pontos',
       points: 0,
-      unlocked: userData.points >= 100,
-      progress: userData.points,
+      unlocked: (userData.points || 0) >= 100,
+      progress: userData.points || 0,
       total: 100,
     },
     {
@@ -92,8 +97,8 @@ export function Rewards({ userData }: RewardsProps) {
       title: 'Lenda',
       description: 'Acumule 500 pontos',
       points: 0,
-      unlocked: userData.points >= 500,
-      progress: userData.points,
+      unlocked: (userData.points || 0) >= 500,
+      progress: userData.points || 0,
       total: 500,
     },
   ];
@@ -102,9 +107,9 @@ export function Rewards({ userData }: RewardsProps) {
   const lockedAchievements = achievements.filter(a => !a.unlocked);
 
   const levelInfo = {
-    currentLevel: Math.floor(userData.points / 100) + 1,
-    pointsInLevel: userData.points % 100,
-    pointsToNextLevel: 100 - (userData.points % 100),
+    currentLevel: Math.floor((userData.points || 0) / 100) + 1,
+    pointsInLevel: (userData.points || 0) % 100,
+    pointsToNextLevel: 100 - ((userData.points || 0) % 100),
   };
 
   return (
@@ -150,7 +155,7 @@ export function Rewards({ userData }: RewardsProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-3xl mb-1">{userData.points}</div>
+              <div className="text-3xl mb-1">{userData.points || 0}</div>
               <div className="text-sm text-gray-600">Pontos Totais</div>
             </CardContent>
           </Card>
@@ -162,13 +167,13 @@ export function Rewards({ userData }: RewardsProps) {
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-3xl mb-1">{userData.pomodoroSessions}</div>
+              <div className="text-3xl mb-1">{userData.pomodoroSessions || 0}</div>
               <div className="text-sm text-gray-600">Pomodoros</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-3xl mb-1">{userData.checkIns.length}</div>
+              <div className="text-3xl mb-1">{userData.checkIns?.length || 0}</div>
               <div className="text-sm text-gray-600">Check-ins</div>
             </CardContent>
           </Card>

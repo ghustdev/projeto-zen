@@ -10,6 +10,10 @@ interface BreathingExerciseProps {
 type Phase = 'inhale' | 'hold' | 'exhale' | 'rest';
 
 export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const [isActive, setIsActive] = useState(false);
   const [phase, setPhase] = useState<Phase>('inhale');
   const [counter, setCounter] = useState(4);
@@ -40,7 +44,11 @@ export function BreathingExercise({ onComplete }: BreathingExerciseProps) {
               
               if (newCyclesCompleted >= totalCycles) {
                 setIsActive(false);
-                onComplete();
+                try {
+                  onComplete();
+                } catch (error) {
+                  console.error('Erro ao completar exercício:', error);
+                }
                 return 0;
               }
             }

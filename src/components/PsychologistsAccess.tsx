@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Users, Video, MessageSquare, Calendar, Star, MapPin, Clock } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Avatar, AvatarFallback } from './ui/avatar';
 import { Badge } from './ui/badge';
 
 interface Psychologist {
@@ -19,6 +19,10 @@ interface Psychologist {
 }
 
 export function PsychologistsAccess() {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const [selectedPsychologist, setSelectedPsychologist] = useState<Psychologist | null>(null);
 
   const psychologists: Psychologist[] = [

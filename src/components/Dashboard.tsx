@@ -1,6 +1,7 @@
+import { useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { BarChart3, TrendingUp, Calendar, Award } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import type { UserData } from '../App';
 
 interface DashboardProps {
@@ -8,28 +9,33 @@ interface DashboardProps {
 }
 
 export function Dashboard({ userData }: DashboardProps) {
-  // Generate mock data for the last 7 days
-  const getLast7Days = () => {
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      days.push(date.toISOString().split('T')[0]);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Generate data for the last 7 days with memoization
+  const moodData = useMemo(() => {
+    try {
+      const days = [];
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        days.push(date.toISOString().split('T')[0]);
+      }
+
+      return days.map(date => {
+        const checkIn = userData.checkIns?.find(c => c.date === date);
+        return {
+          date: new Date(date).toLocaleDateString('pt-BR', { weekday: 'short' }),
+          mood: checkIn?.mood || 0,
+          energy: checkIn?.energy || 0,
+        };
+      });
+    } catch (error) {
+      console.error('Erro ao gerar dados de humor:', error);
+      return [];
     }
-    return days;
-  };
-
-  const last7Days = getLast7Days();
-
-  // Map user check-ins to chart data
-  const moodData = last7Days.map(date => {
-    const checkIn = userData.checkIns.find(c => c.date === date);
-    return {
-      date: new Date(date).toLocaleDateString('pt-BR', { weekday: 'short' }),
-      mood: checkIn?.mood || 0,
-      energy: checkIn?.energy || 0,
-    };
-  });
+  }, [userData.checkIns]);
 
   const studyData = [
     { day: 'Seg', sessions: 3 },
@@ -45,36 +51,47 @@ export function Dashboard({ userData }: DashboardProps) {
     {
       icon: BarChart3,
       label: 'Check-ins Realizados',
-      value: userData.checkIns.length,
+      value: userData.checkIns?.length || 0,
       color: 'from-purple-500 to-purple-700',
     },
     {
       icon: Calendar,
       label: 'Sessões de Pomodoro',
-      value: userData.pomodoroSessions,
+      value: userData.pomodoroSessions || 0,
       color: 'from-blue-500 to-blue-700',
     },
     {
       icon: Award,
       label: 'Aulas Concluídas',
-      value: userData.lessonsCompleted,
+      value: userData.lessonsCompleted || 0,
       color: 'from-pink-500 to-pink-700',
     },
     {
       icon: TrendingUp,
       label: 'Pontos Totais',
-      value: userData.points,
+      value: userData.points || 0,
       color: 'from-green-500 to-green-700',
     },
   ];
 
-  const avgMood = userData.checkIns.length > 0
-    ? (userData.checkIns.reduce((sum, c) => sum + c.mood, 0) / userData.checkIns.length).toFixed(1)
-    : 'N/A';
-
-  const avgEnergy = userData.checkIns.length > 0
-    ? (userData.checkIns.reduce((sum, c) => sum + c.energy, 0) / userData.checkIns.length).toFixed(1)
-    : 'N/A';
+  const { avgMood, avgEnergy } = useMemo(() => {
+    if (!userData.checkIns || userData.checkIns.length === 0) {
+      return { avgMood: 'N/A', avgEnergy: 'N/A' };
+    }
+    
+    try {
+      const totalMood = userData.checkIns.reduce((sum, c) => sum + (c.mood || 0), 0);
+      const totalEnergy = userData.checkIns.reduce((sum, c) => sum + (c.energy || 0), 0);
+      
+      return {
+        avgMood: (totalMood / userData.checkIns.length).toFixed(1),
+        avgEnergy: (totalEnergy / userData.checkIns.length).toFixed(1),
+      };
+    } catch (error) {
+      console.error('Erro ao calcular médias:', error);
+      return { avgMood: 'N/A', avgEnergy: 'N/A' };
+    }
+  }, [userData.checkIns]);
 
   return (
     <div className="min-h-screen p-4 pb-24">
@@ -168,25 +185,25 @@ export function Dashboard({ userData }: DashboardProps) {
             <CardTitle>💡 Insights e Recomendações</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 text-sm text-gray-700">
-            {userData.checkIns.length >= 3 && avgMood !== 'N/A' && parseFloat(avgMood) < 5 && (
+            {(userData.checkIns?.length || 0) >= 3 && avgMood !== 'N/A' && parseFloat(avgMood) < 5 && (
               <div className="bg-white p-3 rounded-lg">
                 <p className="text-purple-600">📊 Seu humor médio está abaixo de 5/10</p>
                 <p>Considere conversar com a Neura ou conectar-se com um psicólogo da nossa rede.</p>
               </div>
             )}
-            {userData.pomodoroSessions < 3 && (
+            {(userData.pomodoroSessions || 0) < 3 && (
               <div className="bg-white p-3 rounded-lg">
                 <p className="text-blue-600">⏰ Poucas sessões de estudo registradas</p>
                 <p>Tente completar pelo menos 3 sessões de Pomodoro por dia para melhores resultados.</p>
               </div>
             )}
-            {userData.checkIns.length < 3 && (
+            {(userData.checkIns?.length || 0) < 3 && (
               <div className="bg-white p-3 rounded-lg">
                 <p className="text-pink-600">❤️ Faça mais check-ins emocionais</p>
                 <p>Registre seu humor diariamente para obter insights mais precisos sobre seu bem-estar.</p>
               </div>
             )}
-            {userData.points >= 100 && (
+            {(userData.points || 0) >= 100 && (
               <div className="bg-white p-3 rounded-lg">
                 <p className="text-green-600">🎉 Parabéns! Você está muito consistente!</p>
                 <p>Continue assim! Sua dedicação ao autocuidado e estudos está gerando ótimos resultados.</p>

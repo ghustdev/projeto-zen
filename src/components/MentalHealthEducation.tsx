@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { BookOpen, Brain, Heart, Shield, Lightbulb, Check } from 'lucide-react';
@@ -9,6 +9,10 @@ interface MentalHealthEducationProps {
 }
 
 export function MentalHealthEducation({ onLessonComplete }: MentalHealthEducationProps) {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const [completedLessons, setCompletedLessons] = useState<Set<string>>(new Set());
 
   const lessons = [
@@ -123,8 +127,12 @@ export function MentalHealthEducation({ onLessonComplete }: MentalHealthEducatio
 
   const handleCompleteLesson = (lessonId: string) => {
     if (!completedLessons.has(lessonId)) {
-      setCompletedLessons(new Set([...completedLessons, lessonId]));
-      onLessonComplete();
+      try {
+        setCompletedLessons(new Set([...completedLessons, lessonId]));
+        onLessonComplete();
+      } catch (error) {
+        console.error('Erro ao completar lição:', error);
+      }
     }
   };
 

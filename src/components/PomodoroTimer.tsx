@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
-import { Timer, Play, Pause, RotateCcw, Coffee, BookOpen } from 'lucide-react';
+import { Play, Pause, RotateCcw, Coffee, BookOpen } from 'lucide-react';
 
 interface PomodoroTimerProps {
   onSessionComplete: () => void;
@@ -10,7 +10,19 @@ interface PomodoroTimerProps {
 
 type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
 
+const TIMER_MODES = {
+  focus: { duration: 25, label: 'Foco', icon: BookOpen, color: 'from-purple-600 to-pink-600' },
+  shortBreak: { duration: 5, label: 'Pausa Curta', icon: Coffee, color: 'from-blue-600 to-teal-600' },
+  longBreak: { duration: 15, label: 'Pausa Longa', icon: Coffee, color: 'from-green-600 to-emerald-600' },
+};
+
+const FOCUS_PRESETS = [15, 25, 30, 45, 60];
+
 export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const [mode, setMode] = useState<TimerMode>('focus');
   const [minutes, setMinutes] = useState(25);
   const [seconds, setSeconds] = useState(0);
@@ -19,81 +31,120 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
   const [studyGoal, setStudyGoal] = useState('');
   const [currentGoal, setCurrentGoal] = useState('');
   const [showGoalInput, setShowGoalInput] = useState(true);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [customFocusTime, setCustomFocusTime] = useState(25);
+  const [showTimeSelector, setShowTimeSelector] = useState(false);
 
-  const timerModes = {
-    focus: { duration: 25, label: 'Foco', icon: BookOpen, color: 'from-purple-600 to-pink-600' },
-    shortBreak: { duration: 5, label: 'Pausa Curta', icon: Coffee, color: 'from-blue-600 to-teal-600' },
-    longBreak: { duration: 15, label: 'Pausa Longa', icon: Coffee, color: 'from-green-600 to-emerald-600' },
-  };
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
 
     if (isActive && (minutes > 0 || seconds > 0)) {
       interval = setInterval(() => {
-        if (seconds === 0) {
-          if (minutes === 0) {
-            handleTimerComplete();
+        setSeconds(prevSeconds => {
+          if (prevSeconds === 0) {
+            setMinutes(prevMinutes => {
+              if (prevMinutes === 0) {
+                setIsActive(false);
+                
+                // Timer completed logic
+                setTimeout(() => {
+                  try {
+                    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+                    if (AudioContextClass) {
+                      const audioContext = new AudioContextClass();
+                      const oscillator = audioContext.createOscillator();
+                      const gainNode = audioContext.createGain();
+                      
+                      oscillator.connect(gainNode);
+                      gainNode.connect(audioContext.destination);
+                      
+                      oscillator.frequency.value = 800;
+                      oscillator.type = 'sine';
+                      
+                      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                      
+                      oscillator.start(audioContext.currentTime);
+                      oscillator.stop(audioContext.currentTime + 0.5);
+                    }
+                  } catch (error) {
+                    console.error('Erro ao reproduzir som:', error);
+                  }
+                  
+                  if (mode === 'focus') {
+                    setSessionsCompleted(prev => {
+                      const newCount = prev + 1;
+                      try {
+                        onSessionComplete();
+                      } catch (error) {
+                        console.error('Erro ao executar callback:', error);
+                      }
+                      
+                      // Switch mode after updating sessions
+                      setTimeout(() => {
+                        if (newCount % 4 === 0) {
+                          setMode('longBreak');
+                          setMinutes(TIMER_MODES.longBreak.duration);
+                          setSeconds(0);
+                          setIsActive(false);
+                        } else {
+                          setMode('shortBreak');
+                          setMinutes(TIMER_MODES.shortBreak.duration);
+                          setSeconds(0);
+                          setIsActive(false);
+                        }
+                      }, 100);
+                      
+                      return newCount;
+                    });
+                  } else {
+                    setTimeout(() => {
+                      setMode('focus');
+                      setMinutes(customFocusTime);
+                      setSeconds(0);
+                      setIsActive(false);
+                      setShowGoalInput(true);
+                    }, 100);
+                  }
+                }, 100);
+                
+                return 0;
+              } else {
+                return prevMinutes - 1;
+              }
+            });
+            return 59;
           } else {
-            setMinutes(minutes - 1);
-            setSeconds(59);
+            return prevSeconds - 1;
           }
-        } else {
-          setSeconds(seconds - 1);
-        }
+        });
       }, 1000);
     }
 
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, minutes, seconds]);
+  }, [isActive, minutes, seconds, mode, onSessionComplete]);
 
-  const handleTimerComplete = () => {
-    setIsActive(false);
-    playSound();
-    
-    if (mode === 'focus') {
-      setSessionsCompleted(prev => prev + 1);
-      onSessionComplete();
-      
-      // After 4 focus sessions, suggest long break
-      if ((sessionsCompleted + 1) % 4 === 0) {
-        switchMode('longBreak');
-      } else {
-        switchMode('shortBreak');
-      }
-    } else {
-      switchMode('focus');
-      setShowGoalInput(true);
-    }
-  };
 
-  const playSound = () => {
-    // Create a simple beep sound using Web Audio API
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.value = 800;
-    oscillator.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
-  };
 
-  const switchMode = (newMode: TimerMode) => {
+
+
+  const switchMode = useCallback((newMode: TimerMode) => {
     setMode(newMode);
-    setMinutes(timerModes[newMode].duration);
+    const duration = newMode === 'focus' ? customFocusTime : TIMER_MODES[newMode].duration;
+    setMinutes(duration);
     setSeconds(0);
     setIsActive(false);
+  }, [customFocusTime]);
+
+  const handleTimePreset = (time: number) => {
+    setCustomFocusTime(time);
+    if (mode === 'focus') {
+      setMinutes(time);
+      setSeconds(0);
+    }
+    setShowTimeSelector(false);
   };
 
   const toggleTimer = () => {
@@ -106,7 +157,8 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
 
   const resetTimer = () => {
     setIsActive(false);
-    setMinutes(timerModes[mode].duration);
+    const duration = mode === 'focus' ? customFocusTime : TIMER_MODES[mode].duration;
+    setMinutes(duration);
     setSeconds(0);
   };
 
@@ -118,20 +170,29 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
     }
   };
 
-  const formatTime = (mins: number, secs: number) => {
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  const formatTime = useMemo(() => {
+    return (mins: number, secs: number) => {
+      const safeMinutes = Math.max(0, Math.floor(mins));
+      const safeSeconds = Math.max(0, Math.floor(secs));
+      return `${safeMinutes.toString().padStart(2, '0')}:${safeSeconds.toString().padStart(2, '0')}`;
+    };
+  }, []);
 
-  const progress = ((timerModes[mode].duration * 60 - (minutes * 60 + seconds)) / (timerModes[mode].duration * 60)) * 100;
+  const progress = useMemo(() => {
+    const duration = mode === 'focus' ? customFocusTime : TIMER_MODES[mode].duration;
+    const totalSeconds = duration * 60;
+    const currentSeconds = minutes * 60 + seconds;
+    return totalSeconds > 0 ? ((totalSeconds - currentSeconds) / totalSeconds) * 100 : 0;
+  }, [mode, minutes, seconds, customFocusTime]);
 
-  const ModeIcon = timerModes[mode].icon;
+  const ModeIcon = TIMER_MODES[mode].icon;
 
   return (
     <div className="min-h-screen p-4 pb-24">
       <div className="max-w-4xl mx-auto space-y-6 pt-8">
         {/* Timer Card */}
         <Card className="overflow-hidden">
-          <CardHeader className={`bg-gradient-to-r ${timerModes[mode].color} text-white`}>
+          <CardHeader className={`bg-gradient-to-r ${TIMER_MODES[mode].color} text-white`}>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                 <ModeIcon className="w-6 h-6" />
@@ -146,18 +207,49 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
           </CardHeader>
           <CardContent className="p-8 space-y-6">
             {/* Mode Selector */}
-            <div className="flex gap-2 justify-center flex-wrap">
-              {(Object.keys(timerModes) as TimerMode[]).map((m) => (
-                <Button
-                  key={m}
-                  onClick={() => switchMode(m)}
-                  variant={mode === m ? 'default' : 'outline'}
-                  className={mode === m ? `bg-gradient-to-r ${timerModes[m].color}` : ''}
-                  disabled={isActive}
-                >
-                  {timerModes[m].label}
-                </Button>
-              ))}
+            <div className="space-y-4">
+              <div className="flex gap-2 justify-center flex-wrap">
+                {(Object.keys(TIMER_MODES) as TimerMode[]).map((m) => (
+                  <Button
+                    key={m}
+                    onClick={() => switchMode(m)}
+                    variant={mode === m ? 'default' : 'outline'}
+                    className={mode === m ? `bg-gradient-to-r ${TIMER_MODES[m].color}` : ''}
+                    disabled={isActive}
+                  >
+                    {m === 'focus' ? `${TIMER_MODES[m].label} (${customFocusTime}min)` : TIMER_MODES[m].label}
+                  </Button>
+                ))}
+              </div>
+              
+              {/* Time Selector for Focus Mode */}
+              {mode === 'focus' && !isActive && (
+                <div className="text-center">
+                  <Button
+                    onClick={() => setShowTimeSelector(!showTimeSelector)}
+                    variant="outline"
+                    size="sm"
+                    className="mb-3"
+                  >
+                    Alterar tempo de foco
+                  </Button>
+                  {showTimeSelector && (
+                    <div className="flex gap-2 justify-center flex-wrap">
+                      {FOCUS_PRESETS.map((time) => (
+                        <Button
+                          key={time}
+                          onClick={() => handleTimePreset(time)}
+                          variant={customFocusTime === time ? 'default' : 'outline'}
+                          size="sm"
+                          className={customFocusTime === time ? 'bg-purple-600' : ''}
+                        >
+                          {time}min
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Current Goal Display */}
@@ -204,7 +296,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
                 {/* Time Display */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
                   <span className="text-7xl tabular-nums">{formatTime(minutes, seconds)}</span>
-                  <span className="text-gray-500 mt-2">{timerModes[mode].label}</span>
+                  <span className="text-gray-500 mt-2">{TIMER_MODES[mode].label}</span>
                 </div>
               </div>
             </div>
@@ -214,7 +306,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
               <Button
                 onClick={toggleTimer}
                 size="lg"
-                className={`bg-gradient-to-r ${timerModes[mode].color} min-w-32`}
+                className={`bg-gradient-to-r ${TIMER_MODES[mode].color} min-w-32`}
               >
                 {isActive ? (
                   <>

@@ -1,5 +1,6 @@
+import { useMemo, useEffect } from 'react';
 import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Card, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { MessageCircle, Users, BookOpen, GraduationCap, Timer, Heart, Wind, Award, Sparkles, ArrowRight } from 'lucide-react';
 import type { Page, UserData } from '../App';
 
@@ -8,9 +9,18 @@ interface HomeProps {
   onNavigate: (page: Page) => void;
 }
 
+
+
 export function Home({ userData, onNavigate }: HomeProps) {
-  const today = new Date().toISOString().split('T')[0];
-  const hasCheckedInToday = userData.checkIns.some(c => c.date === today);
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const hasCheckedInToday = useMemo(() => 
+    userData.checkIns?.some(c => c.date === today) || false, 
+    [userData.checkIns, today]
+  );
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -19,7 +29,7 @@ export function Home({ userData, onNavigate }: HomeProps) {
     return 'Boa noite';
   };
 
-  const quickActions = [
+  const quickActions = useMemo(() => [
     {
       id: 'chatbot' as Page,
       icon: MessageCircle,
@@ -48,9 +58,9 @@ export function Home({ userData, onNavigate }: HomeProps) {
       description: 'Exercício de 2 minutos',
       gradient: 'from-[#F2CC8F] to-[#E8DFD5]',
     },
-  ];
+  ], []);
 
-  const resources = [
+  const resources = useMemo(() => [
     {
       id: 'mental-health' as Page,
       icon: BookOpen,
@@ -79,7 +89,7 @@ export function Home({ userData, onNavigate }: HomeProps) {
       description: 'Suas conquistas',
       color: 'bg-[#FFF5ED]',
     },
-  ];
+  ], []);
 
   return (
     <div className="min-h-screen">
@@ -164,7 +174,7 @@ export function Home({ userData, onNavigate }: HomeProps) {
         </div>
 
         {/* Personalized Insight */}
-        {userData.stressLevel >= 7 && (
+        {(userData.stressLevel || 0) >= 7 && (
           <div className="mb-12 fade-in">
             <div className="glass-dark rounded-2xl p-6 border-l-4 border-[#E07B4F]">
               <div className="flex items-start gap-4">
@@ -250,19 +260,19 @@ export function Home({ userData, onNavigate }: HomeProps) {
           <h3 className="text-xl text-[#3D3833] mb-6 text-center">Seu Progresso</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="text-3xl mb-2 text-[#E07B4F]">{userData.points}</div>
+              <div className="text-3xl mb-2 text-[#E07B4F]">{userData.points || 0}</div>
               <div className="text-sm text-[#8B8378]">Pontos</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl mb-2 text-[#D4A373]">{userData.pomodoroSessions}</div>
+              <div className="text-3xl mb-2 text-[#D4A373]">{userData.pomodoroSessions || 0}</div>
               <div className="text-sm text-[#8B8378]">Sessões de Estudo</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl mb-2 text-[#81B29A]">{userData.checkIns.length}</div>
+              <div className="text-3xl mb-2 text-[#81B29A]">{userData.checkIns?.length || 0}</div>
               <div className="text-sm text-[#8B8378]">Check-ins</div>
             </div>
             <div className="text-center">
-              <div className="text-3xl mb-2 text-[#F2CC8F]">{userData.lessonsCompleted}</div>
+              <div className="text-3xl mb-2 text-[#F2CC8F]">{userData.lessonsCompleted || 0}</div>
               <div className="text-sm text-[#8B8378]">Aulas Completas</div>
             </div>
           </div>

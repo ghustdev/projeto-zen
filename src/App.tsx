@@ -11,6 +11,7 @@ import { BreathingExercise } from './components/BreathingExercise';
 import { Rewards } from './components/Rewards';
 import { Dashboard } from './components/Dashboard';
 import { Navigation } from './components/Navigation';
+import { ErrorBoundary } from './utils/errorBoundary';
 
 export type Page = 
   | 'questionnaire'
@@ -50,18 +51,28 @@ export default function App() {
   });
 
   useEffect(() => {
-    const saved = localStorage.getItem('zenUserData');
-    if (saved) {
-      const parsedData = JSON.parse(saved);
-      setUserData(parsedData);
-      if (parsedData.hasCompletedQuestionnaire) {
-        setCurrentPage('home');
+    try {
+      const saved = localStorage.getItem('zenUserData');
+      if (saved) {
+        const parsedData = JSON.parse(saved);
+        setUserData(parsedData);
+        if (parsedData.hasCompletedQuestionnaire) {
+          setCurrentPage('home');
+        }
       }
+    } catch (error) {
+      console.error('Erro ao carregar dados do usuário:', error);
+      // Reset to default state if data is corrupted
+      localStorage.removeItem('zenUserData');
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('zenUserData', JSON.stringify(userData));
+    try {
+      localStorage.setItem('zenUserData', JSON.stringify(userData));
+    } catch (error) {
+      console.error('Erro ao salvar dados do usuário:', error);
+    }
   }, [userData]);
 
   const handleQuestionnaireComplete = (results: {
@@ -101,45 +112,52 @@ export default function App() {
   };
 
   const renderPage = () => {
-    switch (currentPage) {
-      case 'questionnaire':
-        return <InitialQuestionnaire onComplete={handleQuestionnaireComplete} />;
-      case 'home':
-        return <Home userData={userData} onNavigate={setCurrentPage} />;
-      case 'chatbot':
-        return <ChatbotNeura />;
-      case 'psychologists':
-        return <PsychologistsAccess />;
-      case 'mental-health':
-        return <MentalHealthEducation onLessonComplete={addLessonCompleted} />;
-      case 'study-techniques':
-        return <StudyTechniques onLessonComplete={addLessonCompleted} />;
-      case 'pomodoro':
-        return <PomodoroTimer onSessionComplete={addPomodoroSession} />;
-      case 'check-in':
-        return <EmotionalCheckIn onCheckInComplete={addCheckIn} />;
-      case 'breathing':
-        return <BreathingExercise onComplete={() => addPoints(5)} />;
-      case 'rewards':
-        return <Rewards userData={userData} />;
-      case 'dashboard':
-        return <Dashboard userData={userData} />;
-      default:
-        return <Home userData={userData} onNavigate={setCurrentPage} />;
+    try {
+      switch (currentPage) {
+        case 'questionnaire':
+          return <InitialQuestionnaire onComplete={handleQuestionnaireComplete} />;
+        case 'home':
+          return <Home userData={userData} onNavigate={setCurrentPage} />;
+        case 'chatbot':
+          return <ChatbotNeura />;
+        case 'psychologists':
+          return <PsychologistsAccess />;
+        case 'mental-health':
+          return <MentalHealthEducation onLessonComplete={addLessonCompleted} />;
+        case 'study-techniques':
+          return <StudyTechniques onLessonComplete={addLessonCompleted} />;
+        case 'pomodoro':
+          return <PomodoroTimer onSessionComplete={addPomodoroSession} />;
+        case 'check-in':
+          return <EmotionalCheckIn onCheckInComplete={addCheckIn} />;
+        case 'breathing':
+          return <BreathingExercise onComplete={() => addPoints(5)} />;
+        case 'rewards':
+          return <Rewards userData={userData} />;
+        case 'dashboard':
+          return <Dashboard userData={userData} />;
+        default:
+          return <Home userData={userData} onNavigate={setCurrentPage} />;
+      }
+    } catch (error) {
+      console.error('Erro ao renderizar página:', error);
+      return <Home userData={userData} onNavigate={setCurrentPage} />;
     }
   };
 
   return (
-    <div className="min-h-screen grain-bg relative">
-      {/* Gradient Background */}
-      <div className="fixed inset-0 bg-gradient-to-br from-[#FFF5ED] via-[#FDFAF6] to-[#F5EDE4] -z-10" />
-      
-      {userData.hasCompletedQuestionnaire && currentPage !== 'questionnaire' && (
-        <Navigation currentPage={currentPage} onNavigate={setCurrentPage} points={userData.points} />
-      )}
-      <main className={userData.hasCompletedQuestionnaire && currentPage !== 'questionnaire' ? 'pb-20' : ''}>
-        {renderPage()}
-      </main>
-    </div>
+    <ErrorBoundary>
+      <div className="min-h-screen grain-bg relative">
+        {/* Gradient Background */}
+        <div className="fixed inset-0 bg-gradient-to-br from-[#FFF5ED] via-[#FDFAF6] to-[#F5EDE4] -z-10" />
+        
+        {userData.hasCompletedQuestionnaire && currentPage !== 'questionnaire' && (
+          <Navigation currentPage={currentPage} onNavigate={setCurrentPage} points={userData.points} />
+        )}
+        <main className={userData.hasCompletedQuestionnaire && currentPage !== 'questionnaire' ? 'pb-20' : ''}>
+          {renderPage()}
+        </main>
+      </div>
+    </ErrorBoundary>
   );
 }
