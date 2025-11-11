@@ -1,5 +1,5 @@
 # 🧘 Zen - Plataforma de Saúde Mental e Desempenho Acadêmico
-[![Projeto Zen](/logo.png)](https://projeto-zen.vercel.app/)
+[![Projeto Zen](https://img.shields.io/badge/Projeto-Zen-orange)](https://projeto-zen.vercel.app/)
 
 > **"Estude sem se destruir"** - Uma solução tecnológica para estudantes do ensino médio
 
