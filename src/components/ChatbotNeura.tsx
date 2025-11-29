@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, ChangeEvent } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
@@ -19,7 +19,7 @@ export function ChatbotNeura() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Oi! Sou a Neura, psicóloga especializada em ajudar estudantes como você. \n\nEste é nosso espaço para conversar sobre qualquer coisa que esteja na sua mente - estudos, ansiedade, pressão, relacionamentos, ou simplesmente como você está se sentindo.\n\nO que você gostaria de compartilhar comigo hoje? 💜',
+      text: 'Olá! 💜 Sou a Neura, sua psicóloga aqui na plataforma Zen.\n\nEste é um espaço seguro e confidencial onde você pode falar livremente sobre o que está sentindo. Não há julgamentos aqui, apenas acolhimento.\n\nComo você está se sentindo hoje?',
       sender: 'neura',
       timestamp: new Date(),
     },
@@ -27,6 +27,7 @@ export function ChatbotNeura() {
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -51,11 +52,27 @@ export function ChatbotNeura() {
     }
   }, [isTyping]);
 
+  // Ajusta a altura do textarea e rola a tela para baixo ao digitar
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto'; // Reseta a altura para calcular o novo scrollHeight
+      const scrollHeight = textarea.scrollHeight;
+      const maxHeight = 200; // O mesmo valor do max-h-[200px]
+      textarea.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+
+      // Rola a janela para o final para manter o input visível
+      window.scrollTo(0, document.body.scrollHeight);
+    }
+  }, [inputValue]);
+
   const quickReplies = [
-    'Estou me sentindo ansioso(a)',
-    'Preciso de dicas para focar',
-    'Como lidar com pressão?',
-    'Técnicas de respiração',
+    '😟 Estou ansioso(a)',
+    '📚 Dificuldade para focar',
+    '😓 Muita pressão',
+    '🌿 Preciso relaxar',
+    '😔 Me sinto sobrecarregado(a)',
+    '💬 Só quero conversar',
   ];
 
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
@@ -66,120 +83,92 @@ export function ChatbotNeura() {
       .trim()
       .replace(/<script[^>]*>.*?<\/script>/gi, '') // Remove scripts
       .replace(/<[^>]*>/g, '') // Remove HTML tags
-      .substring(0, 1000); // Limita tamanho
+      .substring(0, 8000); // Limita tamanho
   };
 
 
 
+
+
   const getGeminiResponse = useCallback(async (userMessage: string): Promise<string> => {
-    const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyC0eH5OQ7_qajmT10vFEgdAHa0hE98Krcg';
-    
     const sanitizedMessage = sanitizeInput(userMessage);
-
-    if (!API_KEY) {
-      throw new Error('API Key não configurada');
-    }
-
-    const systemPrompt = `Você é Neura, uma psicóloga clínica especializada em saúde mental de estudantes do ensino médio. Você trabalha na plataforma Zen.
-
-SUA PERSONALIDADE E ABORDAGEM:
-- Psicóloga experiente com 8 anos trabalhando com adolescentes
-- Especialista em TCC, Mindfulness e Neuropsicologia Educacional  
-- Abordagem humanizada, empática e baseada em evidências científicas
-- Tom acolhedor mas profissional, sempre esperançoso
-- Use linguagem natural que adolescentes entendem
-- Seja genuína e autêntica em cada resposta
-
-COMO VOCÊ DEVE RESPONDER:
-- Escute ativamente e valide as emoções do estudante
-- Faça perguntas abertas para entender melhor a situação
-- Ofereça técnicas práticas quando apropriado
-- Mantenha foco na saúde mental e desempenho acadêmico
-- Seja conversacional e natural, não robótica
-- Use 1-2 emojis sutis quando fizer sentido
-- Responda de forma personalizada para cada situação específica
-
-IMPORTANTE:
-- Se detectar risco de autolesão/suicídio, oriente para CVV (188) ou emergência
-- Para sintomas graves, sugira avaliação presencial
-- Nunca diagnostique, apenas observe e acolha
-- Cada resposta deve ser única e contextualizada
-
-Responda como Neura, de forma natural e conversacional:`;
 
     try {
       setConnectionStatus('connecting');
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // Reduzido para 15s
       
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${API_KEY}`, {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+      console.log('🔗 API Base URL:', apiBaseUrl); // Debug
+      
+
+      
+      const response = await fetch(`${apiBaseUrl}/api/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
         signal: controller.signal,
-        body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `${systemPrompt}\n\n[ESTUDANTE]: ${sanitizedMessage}\n\n[NEURA]:`
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.9,
-            topK: 40,
-            topP: 0.95,
-            candidateCount: 1
-          },
-          safetySettings: [
-            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
-            { category: "HARM_CATEGORY_CIVIC_INTEGRITY", threshold: "BLOCK_MEDIUM_AND_ABOVE" }
-          ]
-        })
+        body: JSON.stringify({ message: sanitizedMessage })
       });
       
       clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        console.error('❌ API Error:', response.status, errorData);
-        throw new Error(`API Error: ${response.status}`);
+        console.error('❌ Erro API:', response.status, errorData);
+        
+        // Para erros de servidor, propaga o erro
+        if (response.status >= 500) {
+          throw new Error('Nosso servidor está com problemas. Tente novamente em alguns minutos.');
+        }
+        
+        if (response.status === 429) {
+          throw new Error('Muitas mensagens enviadas. Aguarde um momento antes de tentar novamente.');
+        }
+        
+        // Tratamento específico de erros do cliente
+        switch (response.status) {
+          case 400:
+            if (errorData.code === 'MESSAGE_TOO_LONG') {
+              throw new Error('Sua mensagem é muito longa. Tente ser mais conciso.');
+            }
+            if (errorData.code === 'CONTENT_FILTERED') {
+              throw new Error('Por favor, reformule sua mensagem de forma mais adequada.');
+            }
+            throw new Error('Mensagem inválida. Verifique o que você digitou.');
+          default:
+            throw new Error('Não foi possível conectar com a IA. Verifique sua conexão.');
+        }
       }
 
       const data = await response.json();
       
-
-      
-      if (!data.candidates?.[0]?.content) {
-        throw new Error('Resposta inválida da API');
+      if (!data?.response || typeof data.response !== 'string' || data.response.trim().length === 0) {
+        throw new Error('A IA não conseguiu gerar uma resposta. Tente reformular sua mensagem.');
       }
       
-      const candidate = data.candidates[0];
-      
-      if (!candidate.content.parts?.[0]?.text) {
-        throw new Error('IA não conseguiu gerar resposta');
-      }
-      
-      const aiResponse = candidate.content.parts[0].text;
-      
-      const cleanResponse = aiResponse
+      const cleanResponse = data.response
         .replace(/^\[NEURA\]:\s*/i, '')
         .replace(/^Neura:\s*/i, '')
+        .replace(/^\s*-\s*/, '')
         .trim();
       
       setConnectionStatus('connected');
       return cleanResponse;
       
     } catch (error) {
+      console.error('❌ Erro na comunicação:', error);
       setConnectionStatus('error');
-      console.error('❌ Erro Gemini:', error);
       
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Tempo limite excedido. Tente novamente.');
+        throw new Error('A conexão demorou muito para responder. Tente novamente.');
       }
       
-      throw new Error('Erro de conexão com a IA. Verifique sua internet e tente novamente.');
+      // Propaga todos os erros para o usuário
+      throw error instanceof Error ? error : new Error('Erro inesperado na comunicação com a IA.');
     }
   }, []);
 
@@ -211,7 +200,11 @@ Responda como Neura, de forma natural e conversacional:`;
       setMessages(prev => [...prev, neuraResponse]);
     } catch (error) {
       console.error('Erro ao gerar resposta:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      
+      let errorMessage = 'Erro inesperado';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       
       const errorResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -239,10 +232,9 @@ Responda como Neura, de forma natural e conversacional:`;
   }, [handleSend]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FFF5ED] to-[#F5F5DC] p-2 sm:p-4 pb-20">
-      <div className="max-w-6xl mx-auto fade-in">
-        <Card className="h-[calc(100vh-4rem)] sm:h-[calc(100vh-6rem)] flex flex-col glass shadow-2xl border-[#E07B4F]/20 rounded-3xl overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-[#E07B4F] via-[#D4A373] to-[#E07B4F] text-white p-4 sm:p-6">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-[#FFF5ED] to-[#F5F5DC]">
+      {/* Cabeçalho Fixo */}
+      <header className="bg-gradient-to-r from-[#E07B4F] via-[#D4A373] to-[#E07B4F] text-white p-4 sm:p-6 shadow-md z-10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-sm shadow-lg">
@@ -251,7 +243,7 @@ Responda como Neura, de forma natural e conversacional:`;
                 <div>
                   <CardTitle className="text-2xl sm:text-3xl font-bold">Neura</CardTitle>
                   <CardDescription className="text-white/90 text-sm sm:text-base">
-                    Sua psicóloga especializada 💜
+                    Psicóloga especializada em estudantes 🎓
                   </CardDescription>
                 </div>
               </div>
@@ -276,11 +268,12 @@ Responda como Neura, de forma natural e conversacional:`;
                 )}
               </div>
             </div>
-          </CardHeader>
+      </header>
 
-          <CardContent className="flex-1 flex flex-col p-3 sm:p-6 space-y-4 overflow-hidden bg-gradient-to-b from-white/50 to-white/80">
+      {/* Conteúdo Principal do Chat */}
+      <main className="flex-1 flex flex-col overflow-hidden">
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto space-y-4 pr-2 scroll-smooth" style={{ scrollBehavior: 'smooth' }}>
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 scroll-smooth" style={{ scrollBehavior: 'smooth' }}>
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -294,6 +287,7 @@ Responda como Neura, de forma natural e conversacional:`;
                     }`}
                   >
                     <p className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">{message.text}</p>
+                    <p className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed break-words">{message.text}</p>
                     <p
                       className={`text-xs mt-2 ${
                         message.sender === 'user' ? 'text-white/70' : 'text-[#8B8378]'
@@ -324,11 +318,12 @@ Responda como Neura, de forma natural e conversacional:`;
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Quick Replies */}
+        {/* Área de Input e Respostas Rápidas */}
+        <div className="px-4 sm:px-6 pb-4 fade-in">
             {messages.length <= 1 && (
               <div className="space-y-3 animate-in fade-in-50 duration-500">
-                <p className="text-sm text-[#8B8378] text-center font-medium">💭 Temas que posso te ajudar:</p>
-                <div className="flex flex-wrap gap-2 justify-center">
+                <p className="text-sm text-[#8B8378] text-center font-medium">💜 Como posso te ajudar hoje?</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-w-3xl mx-auto mb-4">
                   {quickReplies.map((reply) => (
                     <Button
                       key={reply}
@@ -336,7 +331,7 @@ Responda como Neura, de forma natural e conversacional:`;
                       size="sm"
                       onClick={() => handleQuickReply(reply)}
                       disabled={isTyping}
-                      className="text-xs sm:text-sm border-[#E07B4F]/30 hover:bg-[#E07B4F] hover:text-white hover:border-[#E07B4F] rounded-full disabled:opacity-50 transition-all duration-200 shadow-sm"
+                      className="text-xs sm:text-sm border-[#E07B4F]/30 hover:bg-[#E07B4F] hover:text-white hover:border-[#E07B4F] rounded-2xl disabled:opacity-50 transition-all duration-200 shadow-sm h-auto py-3 px-3"
                     >
                       {reply}
                     </Button>
@@ -345,27 +340,40 @@ Responda como Neura, de forma natural e conversacional:`;
               </div>
             )}
 
-            {/* Input Area */}
-            <div className="flex gap-3 p-2 bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-lg">
-              <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder={isTyping ? "Neura está pensando..." : "Compartilhe seus sentimentos comigo... 💜"}
-                className="flex-1 border-none focus:ring-0 rounded-xl px-4 py-3 bg-transparent text-sm sm:text-base placeholder:text-gray-400"
-                disabled={isTyping}
-              />
-              <Button
-                onClick={handleSend}
-                disabled={isTyping || !inputValue.trim()}
-                className="bg-gradient-to-r from-[#E07B4F] to-[#D4A373] hover:from-[#D4A373] hover:to-[#E07B4F] text-white rounded-xl px-4 py-3 disabled:opacity-50 transition-all duration-200 shadow-lg"
-              >
-                <Send className="w-5 h-5" />
-              </Button>
+          <div className="relative max-w-3xl mx-auto w-full">
+              <div className="flex items-end gap-2 p-3 bg-white rounded-3xl border border-gray-200 shadow-lg hover:shadow-xl transition-shadow relative">
+                <textarea
+                  ref={textareaRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                  placeholder={isTyping ? "Neura está pensando..." : "Envie uma mensagem..."}
+                  disabled={isTyping}
+                  rows={1}
+                  className="flex-1 resize-none border-none focus:outline-none focus:ring-0 bg-transparent text-sm sm:text-base placeholder:text-gray-400 max-h-[200px] overflow-y-auto py-3 px-2"
+                />
+                <Button
+                  onClick={handleSend}
+                  disabled={isTyping || !inputValue.trim()}
+                  size="icon"
+                  className="bg-[#E07B4F] hover:bg-[#D4A373] text-white rounded-full h-10 w-10 flex-shrink-0 disabled:opacity-30 disabled:bg-gray-300 transition-all duration-200 mb-1"
+                >
+                  <Send className="w-5 h-5" />
+                </Button>
+              </div>
+              {inputValue.length > 0 && (
+                <div className="absolute -top-6 right-2 text-xs text-gray-400">
+                  {inputValue.length}/8000
+                </div>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

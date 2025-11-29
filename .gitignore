@@ -1,3 +1,8 @@
 node_modules
 .env
+.env.server
+.env.local
+.env.production
 dist
+logs
+*.log
