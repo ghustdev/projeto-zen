@@ -9,6 +9,8 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const app = express();
 
 // Middleware de segurança
+
+
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' ? 'https://projeto-zen.vercel.app' : 'http://localhost:5173',
   credentials: true
@@ -143,17 +145,25 @@ RESPONDA SEMPRE:
 
 Você é uma profissional competente, acolhedora e comprometida com o bem-estar dos estudantes.`;
 
-    const fullPrompt = `${systemPrompt}\n\n[ESTUDANTE]: ${sanitizedMessage}\n\n[NEURA]:`;
+    // MITIGAÇÃO DE PROMPT INJECTION:
+    // Em vez de concatenar a entrada do usuário diretamente no prompt,
+    // usamos a estrutura de histórico de chat da API.
+    // Isso ajuda o modelo a distinguir melhor entre as instruções do sistema e a entrada do usuário.
+    const chat = model.startChat({
+      history: [
+        { role: "user", parts: [{ text: systemPrompt }] },
+        { role: "model", parts: [{ text: "Olá! Sou Neura, sua psicóloga virtual. Como você está se sentindo hoje?" }] } // Opcional: Uma saudação inicial para estabelecer o tom.
+      ]
+    });
 
     console.log('🤖 Enviando para Gemini:', sanitizedMessage.substring(0, 50) + '...');
     
-    // Timeout de 30 segundos para a chamada do Gemini
     const timeoutPromise = new Promise((_, reject) => 
       setTimeout(() => reject(new Error('TIMEOUT')), 30000)
     );
     
     const result = await Promise.race([
-      model.generateContent(fullPrompt),
+      chat.sendMessage(sanitizedMessage), // Envia a mensagem do usuário de forma segura
       timeoutPromise
     ]);
     
