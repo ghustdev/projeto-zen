@@ -12,6 +12,7 @@ import { Rewards } from './pages/Rewards';
 import { Dashboard } from './pages/Dashboard';
 import { Navigation } from './components/layout/Navigation';
 import { ErrorBoundary } from './utils/errorBoundary';
+import { Analytics } from '@vercel/analytics/react';
 
 export type Page = 
   | 'questionnaire'
@@ -49,6 +50,8 @@ export default function App() {
     pomodoroSessions: 0,
     lessonsCompleted: 0,
   });
+
+  <Analytics />
 
   useEffect(() => {
     try {
