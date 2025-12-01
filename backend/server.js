@@ -1,6 +1,8 @@
-// Carrega as variáveis de ambiente do arquivo .env.server
-const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env.server') });
+// Carrega as variáveis de ambiente do arquivo .env.server apenas em desenvolvimento local
+if (process.env.NODE_ENV !== 'production') {
+  const path = require('path');
+  require('dotenv').config({ path: path.resolve(__dirname, '../.env.server') });
+}
 
 const express = require('express');
 const cors = require('cors');
