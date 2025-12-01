@@ -63,6 +63,11 @@ Uma plataforma centralizada que oferece:
 
 ## 🛠️ Tecnologias Utilizadas
 
+### Backend
+- **Node.js** - Ambiente de execução
+- **Express** - Framework web
+- **Google Gemini AI** - Inteligência Artificial Generativa
+
 ### Frontend
 - **React 18.3.1** - Biblioteca principal
 - **TypeScript** - Tipagem estática
@@ -84,27 +89,19 @@ Uma plataforma centralizada que oferece:
 
 ```
 projeto-zen/
-├── public/
-│   └── logo.png
+├── backend/                 # Servidor Node.js e API
+│   ├── server.js            # Lógica do servidor
+│   └── package.json         # Dependências do backend
 ├── src/
-│   ├── components/
-│   │   ├── ui/                    # Componentes base (Radix UI)
-│   │   ├── BreathingExercise.tsx  # Exercícios de respiração
-│   │   ├── ChatbotNeura.tsx       # IA terapêutica
-│   │   ├── Dashboard.tsx          # Painel de controle
-│   │   ├── EmotionalCheckIn.tsx   # Check-in diário
-│   │   ├── Home.tsx               # Página inicial
-│   │   ├── InitialQuestionnaire.tsx # Questionário diagnóstico
-│   │   ├── MentalHealthEducation.tsx # Educação em saúde mental
-│   │   ├── Navigation.tsx         # Navegação principal
-│   │   ├── PomodoroTimer.tsx      # Timer de estudo
-│   │   ├── PsychologistsAccess.tsx # Acesso a psicólogos
-│   │   ├── Rewards.tsx            # Sistema de recompensas
-│   │   └── StudyTechniques.tsx    # Técnicas de estudo
-│   ├── styles/
-│   │   └── globals.css
-│   ├── App.tsx                    # Componente principal
-│   └── main.tsx                   # Ponto de entrada
+│   ├── components/          # Componentes reutilizáveis
+│   │   ├── layout/          # Componentes estruturais (Navigation, etc)
+│   │   └── ui/              # Componentes base (Radix UI)
+│   ├── pages/               # Páginas da aplicação
+│   │   ├── Home.tsx
+│   │   ├── Dashboard.tsx
+│   │   └── ...
+│   ├── App.tsx              # Componente principal
+│   └── main.tsx             # Ponto de entrada
 ├── package.json
 └── vite.config.ts
 ```
@@ -123,18 +120,36 @@ git clone https://github.com/seu-usuario/projeto-zen.git
 cd projeto-zen
 ```
 
-2. **Instale as dependências**
+2. **Configure o Backend**
+   - Crie um arquivo `.env.server` na pasta `projeto-zen/` com sua chave da API Gemini:
+     ```
+     GEMINI_API_KEY=sua_chave_aqui
+     ```
+   - Instale as dependências do backend:
+     ```bash
+     cd backend
+     npm install
+     cd ..
+     ```
+
+3. **Instale as dependências do Frontend**
 ```bash
 npm install
 # ou
 yarn install
 ```
 
-3. **Execute o projeto**
+4. **Execute o projeto (Frontend + Backend)**
 ```bash
+# Windows
+start-zen.bat
+
+# Ou manualmente em dois terminais:
+# Terminal 1:
+cd backend && npm start
+
+# Terminal 2:
 npm run dev
-# ou
-yarn dev
 ```
 
 4. **Acesse no navegador**
@@ -174,33 +189,6 @@ yarn build
 - **+15 pontos** - Aula educativa concluída
 - **+5 pontos** - Exercício de respiração
 
-## 🎯 Público-Alvo
-
-### Usuário Final
-- **Estudantes do Ensino Médio** (15-18 anos)
-- Foco em quem enfrenta dificuldades com saúde mental e desempenho acadêmico
-
-### Cliente Pagador
-- **Escolas Públicas e Particulares**
-- **Redes de Ensino**
-- **Governo/Secretarias de Educação**
-
-### Stakeholders
-- **Professores e Coordenadores**
-- **Psicólogos Educacionais**
-- **Pais e Responsáveis**
-
-## 💼 Modelo de Negócio
-
-### Fontes de Receita
-- **SaaS (Software as a Service)** - Assinatura mensal/anual para escolas
-- **Licenciamento Premium** - Direitos sobre a plataforma
-
-### Canais de Distribuição
-- App Store / Google Play
-- Website institucional
-- Parcerias diretas com escolas
-
 ## 🔮 Roadmap Futuro
 
 - [ ] **Integração com Sistemas Escolares** - API para notas e frequência
@@ -218,8 +206,6 @@ yarn build
 [Felipe Luz Leroy](https://github.com/ghustdev)
 
 ## 💻 Desenvolvimento
-
-[Miro compartilhado e MBC](https://miro.com/app/board/uXjVJtFnPPs=/?share_link_id=337809878934)
 
 - **Desenvolvimento Frontend** - Interface e experiência do usuário
 - **Design UX/UI** - Experiência centrada no usuário

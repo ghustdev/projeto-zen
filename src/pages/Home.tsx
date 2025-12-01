@@ -1,6 +1,6 @@
 import { useMemo, useEffect } from 'react';
-import { Button } from './ui/button';
-import { Card, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from '../components/ui/button';
+import { Card, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { MessageCircle, Users, BookOpen, GraduationCap, Timer, Heart, Wind, Award, Sparkles, ArrowRight } from 'lucide-react';
 import type { Page, UserData } from '../App';
 

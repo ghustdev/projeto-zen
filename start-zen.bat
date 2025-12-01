@@ -3,7 +3,7 @@ echo 🧘 Iniciando Projeto Zen...
 echo.
 
 echo 📡 Iniciando Backend (Porta 3001)...
-start "Zen Backend" cmd /k "cd /d %~dp0src\components && npm start"
+start "Zen Backend" cmd /k "cd /d %~dp0backend && npm start"
 
 timeout /t 3 /nobreak >nul
 

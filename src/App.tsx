@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Home } from './components/Home';
-import { InitialQuestionnaire } from './components/InitialQuestionnaire';
-import { ChatbotNeura } from './components/ChatbotNeura';
-import { PsychologistsAccess } from './components/PsychologistsAccess';
-import { MentalHealthEducation } from './components/MentalHealthEducation';
-import { StudyTechniques } from './components/StudyTechniques';
-import { PomodoroTimer } from './components/PomodoroTimer';
-import { EmotionalCheckIn } from './components/EmotionalCheckIn';
-import { BreathingExercise } from './components/BreathingExercise';
-import { Rewards } from './components/Rewards';
-import { Dashboard } from './components/Dashboard';
-import { Navigation } from './components/Navigation';
+import { Home } from './pages/Home';
+import { InitialQuestionnaire } from './pages/InitialQuestionnaire';
+import { ChatbotNeura } from './pages/ChatbotNeura';
+import { PsychologistsAccess } from './pages/PsychologistsAccess';
+import { MentalHealthEducation } from './pages/MentalHealthEducation';
+import { StudyTechniques } from './pages/StudyTechniques';
+import { PomodoroTimer } from './pages/PomodoroTimer';
+import { EmotionalCheckIn } from './pages/EmotionalCheckIn';
+import { BreathingExercise } from './pages/BreathingExercise';
+import { Rewards } from './pages/Rewards';
+import { Dashboard } from './pages/Dashboard';
+import { Navigation } from './components/layout/Navigation';
 import { ErrorBoundary } from './utils/errorBoundary';
 
 export type Page = 

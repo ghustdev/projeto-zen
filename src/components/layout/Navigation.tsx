@@ -1,5 +1,5 @@
 import { Home, MessageCircle, Timer, Heart, Award, BarChart3 } from 'lucide-react';
-import type { Page } from '../App';
+import type { Page } from '../../App';
 
 interface NavigationProps {
   currentPage: Page;

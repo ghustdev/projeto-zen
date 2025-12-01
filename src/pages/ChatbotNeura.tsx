@@ -1,7 +1,6 @@
-import { useState, useRef, useEffect, useCallback, ChangeEvent } from 'react';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Input } from './ui/input';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Button } from '../components/ui/button';
+import { CardTitle, CardDescription } from '../components/ui/card';
 import { Send, Sparkles, AlertCircle } from 'lucide-react';
 
 interface Message {
@@ -223,13 +222,6 @@ export function ChatbotNeura() {
       setInputValue(reply);
     }
   }, [isTyping]);
-
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
-  }, [handleSend]);
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-[#FFF5ED] to-[#F5F5DC]">

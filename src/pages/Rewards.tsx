@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Award, Trophy, Target, Star, Zap, Crown, Medal, Flame } from 'lucide-react';
-import { Progress } from './ui/progress';
+import { Progress } from '../components/ui/progress';
 import type { UserData } from '../App';
 
 interface RewardsProps {

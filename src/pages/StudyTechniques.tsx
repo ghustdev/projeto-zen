@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { GraduationCap, Clock, Repeat, BookMarked, Brain, Lightbulb, Check } from 'lucide-react';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion';
 
 interface StudyTechniquesProps {
   onLessonComplete: () => void;

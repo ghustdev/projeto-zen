@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Users, Video, MessageSquare, Calendar, Star, MapPin, Clock } from 'lucide-react';
-import { Avatar, AvatarFallback } from './ui/avatar';
-import { Badge } from './ui/badge';
+import { Avatar, AvatarFallback } from '../components/ui/avatar';
+import { Badge } from '../components/ui/badge';
 
 interface Psychologist {
   id: string;

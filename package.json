@@ -69,7 +69,7 @@
             "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
             "preview": "vite preview",
             "type-check": "tsc --noEmit",
-            "backend": "cd src/components && npm start",
+            "backend": "cd backend && npm start",
             "start:all": "start-zen.bat"
       }
 }
