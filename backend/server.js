@@ -1,5 +1,6 @@
 // Carrega as variáveis de ambiente do arquivo .env.server
-require('dotenv').config({ path: '../.env.server' });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env.server') });
 
 const express = require('express');
 const cors = require('cors');
@@ -28,8 +29,8 @@ app.use(express.json({ limit: '10mb' }));
 
 // 1. Validação da Chave de API
 const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
-  console.error('ERRO CRÍTICO: A variável de ambiente GEMINI_API_KEY não está definida.');
+if (!apiKey || apiKey === 'sua_chave_api_aqui') {
+  console.error('ERRO CRÍTICO: A variável de ambiente GEMINI_API_KEY não está definida ou é o placeholder.');
   process.exit(1);
 }
 
@@ -38,7 +39,7 @@ const genAI = new GoogleGenerativeAI(apiKey);
 // 2. Endpoint da API para o Chat
 app.post('/api/chat', async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, history } = req.body;
 
     // Validação de entrada mais robusta
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
@@ -59,7 +60,7 @@ app.post('/api/chat', async (req, res) => {
     const sanitizedMessage = message.trim();
 
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-flash'
+      model: 'gemini-2.5-flash'
     });
 
     // 3. Prompt do Sistema - Baseado em práticas de psicoterapia humanista e TCC
@@ -145,15 +146,28 @@ RESPONDA SEMPRE:
 
 Você é uma profissional competente, acolhedora e comprometida com o bem-estar dos estudantes.`;
 
-    // MITIGAÇÃO DE PROMPT INJECTION:
-    // Em vez de concatenar a entrada do usuário diretamente no prompt,
-    // usamos a estrutura de histórico de chat da API.
-    // Isso ajuda o modelo a distinguir melhor entre as instruções do sistema e a entrada do usuário.
+    // Constrói o histórico do chat
+    // Começa com o prompt do sistema e a saudação inicial
+    let chatHistory = [
+      { role: "user", parts: [{ text: systemPrompt }] },
+      { role: "model", parts: [{ text: "Olá! Sou Neura, sua psicóloga virtual. Como você está se sentindo hoje?" }] }
+    ];
+
+    // Adiciona o histórico enviado pelo frontend, se houver
+    if (history && Array.isArray(history)) {
+      // Filtra mensagens inválidas e mapeia para o formato do Gemini
+      const validHistory = history
+        .filter(msg => msg.role && msg.parts && Array.isArray(msg.parts) && msg.parts[0].text)
+        .map(msg => ({
+          role: msg.role === 'user' ? 'user' : 'model',
+          parts: [{ text: msg.parts[0].text }]
+        }));
+      
+      chatHistory = [...chatHistory, ...validHistory];
+    }
+
     const chat = model.startChat({
-      history: [
-        { role: "user", parts: [{ text: systemPrompt }] },
-        { role: "model", parts: [{ text: "Olá! Sou Neura, sua psicóloga virtual. Como você está se sentindo hoje?" }] } // Opcional: Uma saudação inicial para estabelecer o tom.
-      ]
+      history: chatHistory
     });
 
     console.log('🤖 Enviando para Gemini:', sanitizedMessage.substring(0, 50) + '...');
@@ -260,7 +274,7 @@ app.get('/health', (req, res) => {
 // Endpoint para testar a API Gemini
 app.get('/api/test', async (req, res) => {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const result = await model.generateContent('Responda apenas: "Teste OK"');
     const response = await result.response;
     const text = response.text();
@@ -279,10 +293,19 @@ app.get('/api/test', async (req, res) => {
   }
 });
 
+
+
 // 4. Inicialização do Servidor
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`✅ Servidor backend rodando na porta ${PORT}`);
-  console.log(`🔒 Ambiente: ${process.env.NODE_ENV}`);
-  console.log('Aguardando chamadas do frontend em /api/chat');
-});
+
+// Exporta o app para o Vercel Serverless
+module.exports = app;
+
+// Só inicia o servidor se for executado diretamente (localmente)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`✅ Servidor backend rodando na porta ${PORT}`);
+    console.log(`🔒 Ambiente: ${process.env.NODE_ENV}`);
+    console.log('Aguardando chamadas do frontend em /api/chat');
+  });
+}

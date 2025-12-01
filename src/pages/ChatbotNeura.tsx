@@ -27,6 +27,7 @@ export function ChatbotNeura() {
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isSendingRef = useRef(false);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -85,12 +86,14 @@ export function ChatbotNeura() {
       .substring(0, 8000); // Limita tamanho
   };
 
-
-
-
-
-  const getGeminiResponse = useCallback(async (userMessage: string): Promise<string> => {
+  const getGeminiResponse = useCallback(async (userMessage: string, currentHistory: Message[]): Promise<string> => {
     const sanitizedMessage = sanitizeInput(userMessage);
+
+    // Formata o histórico para a API
+    const history = currentHistory.map(msg => ({
+      role: msg.sender === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.text }]
+    }));
 
     try {
       setConnectionStatus('connecting');
@@ -101,8 +104,6 @@ export function ChatbotNeura() {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
       console.log('🔗 API Base URL:', apiBaseUrl); // Debug
       
-
-      
       const response = await fetch(`${apiBaseUrl}/api/chat`, {
         method: 'POST',
         headers: { 
@@ -110,7 +111,10 @@ export function ChatbotNeura() {
           'Accept': 'application/json'
         },
         signal: controller.signal,
-        body: JSON.stringify({ message: sanitizedMessage })
+        body: JSON.stringify({ 
+          message: sanitizedMessage,
+          history: history 
+        })
       });
       
       clearTimeout(timeoutId);
@@ -173,8 +177,9 @@ export function ChatbotNeura() {
 
   const handleSend = useCallback(async () => {
     const trimmedInput = inputValue.trim();
-    if (!trimmedInput || isTyping) return;
+    if (!trimmedInput || isTyping || isSendingRef.current) return;
 
+    isSendingRef.current = true;
     const userMessage: Message = {
       id: Date.now().toString(),
       text: trimmedInput,
@@ -182,12 +187,17 @@ export function ChatbotNeura() {
       timestamp: new Date(),
     };
 
+    // Atualiza o estado local imediatamente
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsTyping(true);
 
     try {
-      const responseText = await getGeminiResponse(trimmedInput);
+      // Passa o histórico atual (incluindo a mensagem recém-adicionada seria ideal, 
+      // mas como o estado é assíncrono, passamos 'messages' e o backend já vai receber a nova msg no body)
+      // Na verdade, para o contexto estar completo, o ideal é passar o histórico ANTES da mensagem atual,
+      // pois a mensagem atual vai no campo 'message'.
+      const responseText = await getGeminiResponse(trimmedInput, messages);
       
       const neuraResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -214,8 +224,9 @@ export function ChatbotNeura() {
       setMessages(prev => [...prev, errorResponse]);
     } finally {
       setIsTyping(false);
+      isSendingRef.current = false;
     }
-  }, [inputValue, isTyping, getGeminiResponse]);
+  }, [inputValue, isTyping, getGeminiResponse, messages]);
 
   const handleQuickReply = useCallback((reply: string) => {
     if (!isTyping) {
@@ -227,6 +238,7 @@ export function ChatbotNeura() {
     <div className="flex flex-col h-screen bg-gradient-to-br from-[#FFF5ED] to-[#F5F5DC]">
       {/* Cabeçalho Fixo */}
       <header className="bg-gradient-to-r from-[#E07B4F] via-[#D4A373] to-[#E07B4F] text-white p-4 sm:p-6 shadow-md z-10">
+        <div className="max-w-3xl mx-auto w-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/20 rounded-3xl flex items-center justify-center backdrop-blur-sm shadow-lg">
@@ -260,12 +272,14 @@ export function ChatbotNeura() {
                 )}
               </div>
             </div>
+        </div>
       </header>
 
       {/* Conteúdo Principal do Chat */}
       <main className="flex-1 flex flex-col overflow-hidden">
             {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 scroll-smooth" style={{ scrollBehavior: 'smooth' }}>
+          <div className="max-w-3xl mx-auto w-full space-y-4">
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -279,7 +293,6 @@ export function ChatbotNeura() {
                     }`}
                   >
                     <p className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">{message.text}</p>
-                    <p className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed break-words">{message.text}</p>
                     <p
                       className={`text-xs mt-2 ${
                         message.sender === 'user' ? 'text-white/70' : 'text-[#8B8378]'
@@ -308,7 +321,8 @@ export function ChatbotNeura() {
                 </div>
               )}
               <div ref={messagesEndRef} />
-            </div>
+          </div>
+        </div>
 
         {/* Área de Input e Respostas Rápidas */}
         <div className="px-4 sm:px-6 pb-4 fade-in">
