@@ -3,6 +3,7 @@
       "version": "1.0.0",
       "private": true,
       "dependencies": {
+            "@google/generative-ai": "^0.24.1",
             "@radix-ui/react-accordion": "^1.2.12",
             "@radix-ui/react-alert-dialog": "^1.1.15",
             "@radix-ui/react-aspect-ratio": "^1.1.8",
@@ -34,7 +35,11 @@
             "class-variance-authority": "^0.7.1",
             "clsx": "^2.1.1",
             "cmdk": "^1.1.1",
+            "cors": "^2.8.5",
+            "dotenv": "^16.4.5",
             "embla-carousel-react": "^8.6.0",
+            "express": "^4.19.2",
+            "express-rate-limit": "^7.5.1",
             "input-otp": "^1.4.2",
             "lucide-react": "^0.487.0",
             "next-themes": "^0.4.6",
@@ -46,12 +51,7 @@
             "recharts": "^2.15.2",
             "sonner": "^2.0.3",
             "tailwind-merge": "^3.4.0",
-            "vaul": "^1.1.2",
-            "@google/generative-ai": "^0.24.1",
-            "cors": "^2.8.5",
-            "dotenv": "^16.4.5",
-            "express": "^4.19.2",
-            "express-rate-limit": "^7.5.1"
+            "vaul": "^1.1.2"
       },
       "devDependencies": {
             "@types/node": "^22.0.0",

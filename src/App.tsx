@@ -51,8 +51,6 @@ export default function App() {
     lessonsCompleted: 0,
   });
 
-  <Analytics />
-
   useEffect(() => {
     try {
       const saved = localStorage.getItem('zenUserData');
@@ -151,6 +149,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen grain-bg relative">
+        <Analytics />
         {/* Gradient Background */}
         <div className="fixed inset-0 bg-gradient-to-br from-[#FFF5ED] via-[#FDFAF6] to-[#F5EDE4] -z-10" />
         
