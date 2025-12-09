@@ -12,7 +12,7 @@
 
 **Zen** é uma plataforma inovadora desenvolvida pela equipe **Monkeys com Aura** para o Hackathon Gemini - Google, focada em melhorar a saúde mental e o desempenho acadêmico de estudantes do ensino médio.
 
-[Apresentação do Pitch do nosso Projeto](https://www.youtube.com/watch?v=RvOYLfjVPxg)
+[Apresentação do Pitch do nosso Projeto](https://www.youtube.com/watch?v=VvodyB5FAeM)
 
 Acesse nosso protótipo: [Projeto Zen](https://zen-projeto.vercel.app/)
 
