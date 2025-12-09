@@ -15,8 +15,27 @@ const app = express();
 
 
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? (process.env.FRONTEND_URL || 'https://projeto-zen.vercel.app') : 'http://localhost:5173',
-  credentials: true
+  origin: function (origin, callback) {
+    // Permitir requisições sem 'origin' (como mobile apps ou curl)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://projeto-zen.vercel.app'
+    ];
+    
+    // Verifica se é um domínio permitido ou um subdomínio vercel.app (previews)
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      console.log('🚫 Bloqueado pelo CORS:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // Rate limiting para prevenir abuso
@@ -50,6 +69,7 @@ try {
 }
 
 // 2. Endpoint da API para o Chat
+app.options('/api/chat', cors()); // Enable pre-flight request for this endpoint
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
