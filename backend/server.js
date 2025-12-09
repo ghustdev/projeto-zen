@@ -12,6 +12,8 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const app = express();
 
 // Middleware de segurança
+app.set('trust proxy', 1); // Importante para Vercel/Proxies
+app.options('*', cors()); // Trata pre-flight requests para todas as rotas
 
 
 app.use(cors({
@@ -70,7 +72,6 @@ try {
 }
 
 // 2. Endpoint da API para o Chat
-app.options('/api/chat', cors()); // Enable pre-flight request for this endpoint
 app.post('/api/chat', async (req, res) => {
   try {
     const { message, history } = req.body;
