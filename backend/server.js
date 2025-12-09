@@ -22,7 +22,8 @@ app.use(cors({
     const allowedOrigins = [
       'http://localhost:5173',
       'http://localhost:3000',
-      'https://projeto-zen.vercel.app'
+      'https://projeto-zen.vercel.app',
+      'https://projeto-zen-v2.vercel.app'
     ];
     
     // Verifica se é um domínio permitido ou um subdomínio vercel.app (previews)
