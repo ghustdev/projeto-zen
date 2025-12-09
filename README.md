@@ -14,7 +14,7 @@
 
 [Apresentação do Pitch do nosso Projeto](https://www.youtube.com/watch?v=RvOYLfjVPxg)
 
-Acesse nosso protótipo: [Projeto Zen](hhttps://projeto-zen-v2.vercel.app/)
+Acesse nosso protótipo: [Projeto Zen](https://zen-projeto.vercel.app/)
 
 ### 🎯 Objetivo
 Reduzir a ansiedade e aumentar a performance escolar, integrando ferramentas de apoio psicológico e estudantil, com foco em gestão eficiente e fomento na participação de comunidades de apoio.
