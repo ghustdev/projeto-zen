@@ -15,7 +15,7 @@ const app = express();
 
 
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? 'https://projeto-zen.vercel.app' : 'http://localhost:5173',
+  origin: process.env.NODE_ENV === 'production' ? (process.env.FRONTEND_URL || 'https://projeto-zen.vercel.app') : 'http://localhost:5173',
   credentials: true
 }));
 
@@ -29,14 +29,25 @@ app.use('/api/', limiter);
 
 app.use(express.json({ limit: '10mb' }));
 
-// 1. Validação da Chave de API
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey || apiKey === 'sua_chave_api_aqui') {
-  console.error('ERRO CRÍTICO: A variável de ambiente GEMINI_API_KEY não está definida ou é o placeholder.');
-  process.exit(1);
-}
+// 1. Validação da Chave de API (Lazy loading para evitar crash no deploy)
+const getApiKey = () => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey === 'sua_chave_api_aqui') {
+    console.error('ERRO CRÍTICO: GEMINI_API_KEY não configurada.');
+    return null;
+  }
+  return apiKey;
+};
 
-const genAI = new GoogleGenerativeAI(apiKey);
+let genAI;
+try {
+  const apiKey = getApiKey();
+  if (apiKey) {
+    genAI = new GoogleGenerativeAI(apiKey);
+  }
+} catch (e) {
+  console.error('Erro ao inicializar Gemini:', e);
+}
 
 // 2. Endpoint da API para o Chat
 app.post('/api/chat', async (req, res) => {
@@ -60,6 +71,14 @@ app.post('/api/chat', async (req, res) => {
 
     // Sanitização (sem limitação de tamanho)
     const sanitizedMessage = message.trim();
+
+    if (!genAI) {
+      const apiKey = getApiKey();
+      if (!apiKey) {
+        return res.status(500).json({ error: 'Servidor não configurado corretamente (API KEY ausente).' });
+      }
+      genAI = new GoogleGenerativeAI(apiKey);
+    }
 
     const model = genAI.getGenerativeModel({ 
       model: 'gemini-2.5-flash'
@@ -265,7 +284,7 @@ Você é uma profissional competente, acolhedora e comprometida com o bem-estar 
 });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
