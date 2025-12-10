@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { GraduationCap, Clock, Repeat, BookMarked, Brain, Lightbulb, Check } from 'lucide-react';
+import { Clock, Repeat, BookMarked, Brain, Lightbulb, Check } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion';
 
 interface StudyTechniquesProps {
@@ -167,9 +167,7 @@ export function StudyTechniques({ onLessonComplete }: StudyTechniquesProps) {
         {/* Header */}
         <div className="text-center space-y-2">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-teal-600 rounded-full flex items-center justify-center">
-              <GraduationCap className="w-8 h-8 text-white" />
-            </div>
+            <img src="/Avatar-estudando-sem-fundo.png" alt="Avatar Estudando" style={{ width: '70px', height: '70px', objectFit: 'cover' }} />
           </div>
           <h1 className="text-3xl text-gray-800">Técnicas de Estudo Eficiente</h1>
           <p className="text-gray-600">Aprenda métodos comprovados cientificamente para estudar melhor</p>

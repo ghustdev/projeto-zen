@@ -185,7 +185,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
     return totalSeconds > 0 ? ((totalSeconds - currentSeconds) / totalSeconds) * 100 : 0;
   }, [mode, minutes, seconds, customFocusTime]);
 
-  const ModeIcon = TIMER_MODES[mode].icon;
+
 
   return (
     <div className="min-h-screen p-4 pb-24">
@@ -194,9 +194,7 @@ export function PomodoroTimer({ onSessionComplete }: PomodoroTimerProps) {
         <Card className="overflow-hidden">
           <CardHeader className={`bg-gradient-to-r ${TIMER_MODES[mode].color} text-white`}>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                <ModeIcon className="w-6 h-6" />
-              </div>
+              <img src="/Avatar-estudando-sem-fundo.png" alt="Avatar Estudando" style={{ width: '70px', height: '70px', objectFit: 'cover' }} />
               <div>
                 <CardTitle>Pomodoro Inteligente</CardTitle>
                 <CardDescription className="text-white/80">

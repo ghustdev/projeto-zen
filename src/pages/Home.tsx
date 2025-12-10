@@ -103,11 +103,13 @@ export function Home({ userData, onNavigate }: HomeProps) {
             
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-6">
-                <div className="breathe">
-                  <span className="text-6xl">🧘</span>
-                </div>
                 <div>
-                  <h1 className="text-5xl md:text-6xl text-[#3D3833] mb-2">Zen</h1>
+                  <div className="flex items-center gap-4 mb-4">
+                    <img src="/Logo-principal.png" alt="Zen Logo" style={{ width: '70px', height: '70px', objectFit: 'cover' }} />
+                    <h1 className="text-6xl font-bold text-[#E07B4F] font-display">
+                      Zen
+                    </h1>
+                  </div>
                   <p className="text-lg text-[#8B8378]">{getGreeting()}, bem-vindo de volta</p>
                 </div>
               </div>
@@ -126,7 +128,7 @@ export function Home({ userData, onNavigate }: HomeProps) {
                   <Button 
                     onClick={() => onNavigate('check-in')}
                     size="lg"
-                    className="bg-[#E07B4F] hover:bg-[#D4A373] text-white rounded-full px-8 shadow-lg hover:shadow-xl"
+                    className="bg-[#E07B4F] hover:bg-[#D4A373] text-white rounded-full px-8 shadow-lg hover:shadow-xl cursor-pointer hover:scale-105 transition-transform"
                   >
                     <Heart className="w-5 h-5 mr-2" />
                     Fazer Check-in
@@ -136,7 +138,7 @@ export function Home({ userData, onNavigate }: HomeProps) {
                   onClick={() => onNavigate('dashboard')}
                   size="lg"
                   variant="outline"
-                  className="rounded-full px-8 border-[#E07B4F]/20 hover:bg-[#FFF5ED]"
+                  className="rounded-full px-8 border-[#E07B4F]/20 hover:bg-[#FFF5ED] cursor-pointer hover:scale-105 transition-transform"
                 >
                   Ver Meu Progresso
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -160,7 +162,7 @@ export function Home({ userData, onNavigate }: HomeProps) {
                 <button
                   key={action.id}
                   onClick={() => onNavigate(action.id)}
-                  className="glass-dark rounded-2xl p-6 text-left hover-lift group"
+                  className="glass-dark rounded-2xl p-6 text-left hover-lift group cursor-pointer hover:scale-105 transition-transform"
                 >
                   <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${action.gradient} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
                     <Icon className="w-7 h-7 text-white" />
@@ -188,7 +190,7 @@ export function Home({ userData, onNavigate }: HomeProps) {
                   </p>
                   <Button 
                     onClick={() => onNavigate('breathing')}
-                    className="bg-[#E07B4F] hover:bg-[#D4A373] text-white rounded-full"
+                    className="bg-[#E07B4F] hover:bg-[#D4A373] text-white rounded-full cursor-pointer hover:scale-105 transition-transform"
                   >
                     Começar Agora
                   </Button>
@@ -205,7 +207,7 @@ export function Home({ userData, onNavigate }: HomeProps) {
             <div className="glass rounded-2xl p-8 relative overflow-hidden group hover-lift">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#E07B4F]/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
               <div className="relative z-10">
-                <div className="text-4xl mb-4">😰</div>
+                <img src="/Avatar-meditando-sem-fundo.png" alt="Avatar Challenge" className="mb-4" style={{ width: '70px', height: '70px', objectFit: 'cover' }} />
                 <h3 className="text-2xl text-[#3D3833] mb-3">O Desafio</h3>
                 <p className="text-[#8B8378] leading-relaxed">
                   Ansiedade, pressão por notas e expectativas criam um ambiente estressante que afeta diretamente 
@@ -218,7 +220,7 @@ export function Home({ userData, onNavigate }: HomeProps) {
             <div className="glass rounded-2xl p-8 relative overflow-hidden group hover-lift">
               <div className="absolute top-0 right-0 w-32 h-32 bg-[#81B29A]/5 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
               <div className="relative z-10">
-                <div className="text-4xl mb-4">✨</div>
+                <img src="/Avatar-estudando-sem-fundo.png" alt="Avatar Studying" className="mb-4" style={{ width: '70px', height: '70px', objectFit: 'cover' }} />
                 <h3 className="text-2xl text-[#3D3833] mb-3">Nossa Solução</h3>
                 <p className="text-[#8B8378] leading-relaxed">
                   Integramos apoio psicológico, técnicas de estudo comprovadas e ferramentas de gestão emocional 
@@ -238,7 +240,7 @@ export function Home({ userData, onNavigate }: HomeProps) {
               return (
                 <Card
                   key={resource.id}
-                  className={`${resource.color} border-[#E07B4F]/10 hover-lift cursor-pointer group overflow-hidden relative`}
+                  className={`${resource.color} border-[#E07B4F]/10 hover-lift cursor-pointer group overflow-hidden relative hover:scale-105 transition-transform`}
                   onClick={() => onNavigate(resource.id)}
                 >
                   <div className="absolute top-0 right-0 w-24 h-24 bg-[#E07B4F]/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-500" />
