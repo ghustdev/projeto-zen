@@ -1,5 +1,13 @@
-# 🧘 Zen - Plataforma de Saúde Mental e Desempenho Acadêmico
+<div>
+   <img width="30" height="30" alt="Avatar-meditando-sem-fundo" src="https://github.com/user-attachments/assets/35806a30-ee6d-4036-a730-a25d9d1b3817" />
+   Zen - Plataforma de Saúde Mental e Desempenho Acadêmico
+</div>
+
+---
+
 [![Projeto Zen](https://img.shields.io/badge/Projeto-Zen-orange)](https://projeto-zen.vercel.app/) - Nosso protótipo
+
+<img display="flex" aligne-itens="center" width="200" height="200" alt="Logo-principal" src="https://github.com/user-attachments/assets/0f46c7b4-fd5a-4b01-8936-24bc4b9443fc" />
 
 > **"Estude sem se destruir"** - Uma solução tecnológica para estudantes do ensino médio
 
