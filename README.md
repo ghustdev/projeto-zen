@@ -1,5 +1,5 @@
 <div>
-   <img width="30" height="30" alt="Avatar-meditando-sem-fundo" src="https://github.com/user-attachments/assets/35806a30-ee6d-4036-a730-a25d9d1b3817" />
+   <img width="100" height="100" alt="Avatar-meditando-sem-fundo" src="https://github.com/user-attachments/assets/35806a30-ee6d-4036-a730-a25d9d1b3817" />
    Zen - Plataforma de Saúde Mental e Desempenho Acadêmico
 </div>
 
